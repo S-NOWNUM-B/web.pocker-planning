@@ -3,12 +3,12 @@
  *
  * Центральная зона RoomPage. Показывает:
  *  - Название активной задачи
- *  - Среднее значение голосов (Story Points)
+ *  - Топ-3 голосуемых значений с количеством голосов
  *  - До раскрытия: кнопку «Вскрыть карты» и подсказку о состоянии голосования
  *  - После раскрытия: финальную оценку крупным шрифтом + кнопку «Следующая задача»
  *
  * @param activeTaskTitle — название текущей задачи
- * @param average — среднее значение голосов
+ * @param snapshot — снимок комнаты с голосами
  * @param isRevealed — раскрыты ли результаты
  * @param allPlayersVoted — все ли проголосовали
  * @param anyPlayerVoted — есть ли хоть один голос
@@ -16,7 +16,7 @@
  * @param onNextTask — переход к следующей задаче
  * @param className — дополнительный CSS-класс
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button, Modal } from '@/shared/ui';
 import { cn } from '@/shared/lib';
 import { CheckIcon } from '@/shared/ui/icons';
@@ -24,7 +24,6 @@ import type { RoomSnapshot } from '@/entities/room/model/types';
 
 interface RoomResultsProps {
   activeTaskTitle: string | null;
-  average: string;
   cards: string[];
   isRevealed: boolean;
   isFinalized: boolean;
@@ -38,9 +37,65 @@ interface RoomResultsProps {
   className?: string;
 }
 
+interface VoteStat {
+  value: string;
+  count: number;
+}
+
+function getTopVoteStats(snapshot: RoomSnapshot, cards: string[]): VoteStat[] {
+  const counts = new Map<string, number>();
+
+  for (const vote of snapshot.active_round?.votes ?? []) {
+    if (!vote.value) continue;
+    counts.set(vote.value, (counts.get(vote.value) ?? 0) + 1);
+  }
+
+  const cardOrder = new Map(cards.map((card, index) => [card, index]));
+
+  return [...counts.entries()]
+    .sort((left, right) => {
+      const countDiff = right[1] - left[1];
+      if (countDiff !== 0) return countDiff;
+
+      const leftOrder = cardOrder.get(left[0]) ?? Number.POSITIVE_INFINITY;
+      const rightOrder = cardOrder.get(right[0]) ?? Number.POSITIVE_INFINITY;
+      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+
+      return left[0].localeCompare(right[0], 'ru');
+    })
+    .slice(0, 3)
+    .map(([value, count]) => ({ value, count }));
+}
+
+function getVoteCardTone(index: number) {
+  if (index === 0) {
+    return 'border-primary/40 bg-primary/10 text-primary shadow-lg shadow-primary/10';
+  }
+
+  if (index === 1) {
+    return 'border-border/70 bg-background/70 text-foreground';
+  }
+
+  return 'border-border/50 bg-background/40 text-muted-foreground';
+}
+
+function formatVoteCount(count: number) {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+
+  if (lastDigit === 1 && lastTwoDigits !== 11) {
+    return 'человек';
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 10 || lastTwoDigits >= 20)) {
+    return 'человека';
+  }
+
+  return 'человек';
+}
+
 export function RoomResults({
   activeTaskTitle,
-  average,
   cards,
   isRevealed,
   isFinalized,
@@ -50,36 +105,18 @@ export function RoomResults({
   onFinalize,
   onNextTask,
   isOwner,
+  snapshot,
   className,
 }: RoomResultsProps) {
-  const [finalValue, setFinalValue] = useState(average);
+  const topVoteStats = useMemo(() => getTopVoteStats(snapshot, cards), [cards, snapshot]);
+  const [finalValue, setFinalValue] = useState(topVoteStats[0]?.value ?? cards[0] ?? '');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  // Чтобы иметь доступ к snapshot внутри useEffect, нам нужно его передать.
-  // Поскольку я не хочу переписывать RoomPage слишком сильно, я добавлю snapshot в пропсы.
 
   const hasActiveTask = Boolean(activeTaskTitle);
 
-  const getClosestValidCard = (avgStr: string, deck: string[]) => {
-    const avg = parseFloat(avgStr);
-    if (isNaN(avg)) return deck[0];
-
-    const numericCards = deck.filter((c) => !isNaN(parseFloat(c)));
-    if (numericCards.length === 0) return deck[0];
-
-    return numericCards.reduce((prev, curr) => {
-      return Math.abs(parseFloat(curr) - avg) < Math.abs(parseFloat(prev) - avg) ? curr : prev;
-    });
-  };
-
-  // Мы должны передать snapshot в компонент, чтобы использовать suggested_result
-  // Но чтобы не менять пропсы слишком сильно, я использую решение с передачей
-  // suggested_result отдельно или просто добавлю snapshot в пропсы.
-
   useEffect(() => {
-    const displayValue = getClosestValidCard(average, cards);
-    setFinalValue(displayValue);
-  }, [average, cards]);
+    setFinalValue(topVoteStats[0]?.value ?? cards[0] ?? '');
+  }, [cards, topVoteStats]);
 
   return (
     <>
@@ -99,24 +136,64 @@ export function RoomResults({
                 {activeTaskTitle ?? 'Добавьте задачу для оценки'}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1 rounded-2xl border border-border/50 bg-background/50 px-3 py-1.5 backdrop-blur-sm shadow-inner">
-              <div className="text-[10px] font-medium uppercase tracking-tight text-muted-foreground">
-                Среднее
+            <div className="w-full max-w-15rem shrink-0 rounded-2xl border border-border/50 bg-background/55 p-1.5 shadow-inner backdrop-blur-sm sm:max-w-17rem lg:max-w-72">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <div className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+                  {isRevealed ? 'Топ голосов' : 'Голоса скрыты'}
+                </div>
+                {isRevealed && (
+                  <div className="rounded-full border border-border/60 bg-background/80 px-1.5 py-0.5 text-[8px] font-semibold text-muted-foreground">
+                    {topVoteStats.reduce((sum, item) => sum + item.count, 0)} голосов
+                  </div>
+                )}
               </div>
-              <div className="text-lg font-black text-primary sm:text-xl">
-                {average} <span className="text-xs font-medium opacity-60">SP</span>
-              </div>
+
+              {isRevealed ? (
+                <div className="grid grid-cols-3 gap-1">
+                  {topVoteStats.length > 0 ? (
+                    topVoteStats.map((item, index) => (
+                      <div
+                        key={`${item.value}-${index}`}
+                        className={cn(
+                          'flex min-h-14 flex-col justify-between rounded-2xl border px-1.5 py-1 text-center backdrop-blur-sm transition-transform hover:-translate-y-0.5',
+                          getVoteCardTone(index),
+                        )}
+                      >
+                        <div className="flex items-center justify-between text-[7px] font-semibold uppercase tracking-[0.18em] opacity-70">
+                          <span>{index === 0 ? 'Самый частый' : index === 1 ? 'Средний' : 'Редкий'}</span>
+                          <span>#{index + 1}</span>
+                        </div>
+                        <div className="mt-0.5 text-[1.1rem] font-black leading-none sm:text-[1.35rem]">
+                          {item.value}
+                        </div>
+                        <div className="mt-1 flex items-center justify-center gap-1 text-[8px] font-medium opacity-80">
+                          <span className="rounded-full bg-current/10 px-1 py-0.5">{item.count}</span>
+                          <span>{formatVoteCount(item.count)}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-3 rounded-2xl border border-dashed border-border/60 bg-background/40 px-2 py-2 text-center text-[10px] text-muted-foreground">
+                      Пока нет голосов для подсчёта
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-border/60 bg-background/35 px-2 py-2 text-center text-[10px] text-muted-foreground">
+                  После вскрытия покажем 3 самых популярных значения
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex flex-1 items-center justify-center py-2 sm:py-4">
+          <div className="flex flex-1 items-center justify-center py-2 sm:py-3">
             {isRevealed ? (
-              <div className="flex w-full max-w-xs flex-col items-center gap-4 text-center">
+              <div className="flex w-full max-w-xs flex-col items-center gap-2 text-center">
                 <div className="relative group shrink-0">
                   <div className="absolute -inset-8 rounded-full bg-primary/30 blur-3xl animate-pulse-glow" />
                   <div
                     className={cn(
-                      'relative flex flex-col items-center justify-center rounded-full border-4 border-primary bg-card p-4 shadow-2xl w-32 h-32 sm:w-40 sm:h-40 transition-all',
+                      'relative flex flex-col items-center justify-center rounded-full border-4 border-primary bg-card p-3 shadow-2xl w-24 h-24 sm:w-32 sm:h-32 transition-all',
                       'animate-reveal-pop',
                       isOwner &&
                         !isFinalized &&
@@ -125,7 +202,6 @@ export function RoomResults({
                     onClick={() => {
                       if (isOwner && !isFinalized) {
                         setIsEditModalOpen(true);
-                        setEditValue(finalValue);
                       }
                     }}
                   >
@@ -150,7 +226,7 @@ export function RoomResults({
                   <Button
                     type="button"
                     onClick={onNextTask}
-                    className="h-11 rounded-full px-8 text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95"
+                    className="h-10 rounded-full px-8 text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95"
                   >
                     Следующая задача
                   </Button>
@@ -158,7 +234,7 @@ export function RoomResults({
                   <Button
                     type="button"
                     onClick={() => onFinalize(finalValue)}
-                    className="h-11 rounded-full px-8 text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 bg-primary text-primary-foreground"
+                    className="h-10 rounded-full px-8 text-sm font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 bg-primary text-primary-foreground"
                   >
                     Подтвердить оценку
                   </Button>

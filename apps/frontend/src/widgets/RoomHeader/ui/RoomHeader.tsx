@@ -47,14 +47,14 @@ export function RoomHeader({ roomName, roomId, deckName, inviteLink }: RoomHeade
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/50 bg-background/60 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-card/88 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4">
           <Link to="/dashboard" className="flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-              <TrophyIcon className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <TrophyIcon className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">
+            <span className="text-xl font-black tracking-tight text-foreground">
               Poker<span className="text-primary">.</span>Planning
             </span>
           </Link>

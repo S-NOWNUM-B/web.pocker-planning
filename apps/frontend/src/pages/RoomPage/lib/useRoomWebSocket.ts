@@ -24,12 +24,15 @@ export function useRoomWebSocket({
 }: UseRoomWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const shouldReconnectRef = useRef(true);
   const queryClient = useQueryClient();
 
   const connect = useCallback(() => {
     if (!enabled || !token || !roomId) {
       return;
     }
+
+    shouldReconnectRef.current = true;
 
     // Use backend URL directly for WebSocket (proxy may not work reliably)
     // In development, connect to localhost:8000; in production, use relative path
@@ -82,14 +85,22 @@ export function useRoomWebSocket({
     };
 
     ws.onclose = () => {
+      if (!shouldReconnectRef.current) {
+        console.log('[WebSocket] Disconnected');
+        return;
+      }
+
       console.log('[WebSocket] Disconnected, will reconnect in 3s...');
       reconnectTimeoutRef.current = setTimeout(connect, 3000);
     };
   }, [enabled, token, roomId, queryClient, onSnapshotUpdate]);
 
   const disconnect = useCallback(() => {
+    shouldReconnectRef.current = false;
+
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = undefined;
     }
     if (wsRef.current) {
       wsRef.current.close();

@@ -147,7 +147,7 @@ export function RoomPage() {
   const currentUserName = user?.name || selfParticipant?.name || localSession?.userName || 'Гость';
   const tasks = mapSnapshotTasks(snapshot);
   const players = mapSnapshotPlayers(snapshot);
-  const { activeTaskId, activeTask, isRevealed, allPlayersVoted, anyPlayerVoted, average } =
+  const { activeTaskId, activeTask, isRevealed, allPlayersVoted, anyPlayerVoted } =
     getRoomVotingView(snapshot, tasks);
   const roomOwnerName = resolveRoomOwnerName(snapshot);
 
@@ -228,8 +228,13 @@ export function RoomPage() {
     });
   };
 
+  const footerInset = '14rem';
+
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground selection:bg-primary/30">
+    <div
+      className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground selection:bg-primary/30"
+      style={{ ['--room-footer-height' as string]: footerInset }}
+    >
       {/* Background Decoration */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-1/4 -top-1/4 h-1/2 w-1/2 rounded-full bg-primary/5 blur-[120px]" />
@@ -250,7 +255,7 @@ export function RoomPage() {
         inviteLink={snapshot.room.invite_link}
       />
 
-      <main className="relative mx-auto grid w-full max-w-7xl min-h-0 flex-1 gap-3 overflow-y-auto px-4 py-3 pb-4 sm:px-6 sm:py-4 sm:pb-5 lg:grid-cols-[20rem_minmax(0,1fr)] lg:overflow-visible lg:px-8">
+      <main className="relative mx-auto grid w-full max-w-7xl min-h-0 flex-1 gap-3 overflow-y-auto px-4 py-3 pb-(--room-footer-height) scroll-pb-(--room-footer-height) sm:px-6 sm:py-4 lg:grid-cols-[20rem_minmax(0,1fr)] lg:overflow-visible lg:px-8">
         <TaskSidebar
           tasks={tasks}
           activeTaskId={activeTaskId}
@@ -262,7 +267,7 @@ export function RoomPage() {
           className="h-auto min-h-0 lg:h-full lg:max-h-full"
         />
 
-        <div className="grid min-w-0 min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1.8fr)_auto]">
+        <div className="grid min-w-0 gap-3 lg:grid-rows-[auto_auto_auto]">
           <div className="flex items-center gap-3 rounded-2xl border border-border/50 bg-card/30 p-3 backdrop-blur-sm">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
               <TrophyIcon className="h-4 w-4" />
@@ -279,7 +284,6 @@ export function RoomPage() {
 
           <RoomResults
             activeTaskTitle={activeTask ? activeTask.title : null}
-            average={average}
             cards={snapshot.room.deck.cards}
             isRevealed={isRevealed}
             isFinalized={false}
