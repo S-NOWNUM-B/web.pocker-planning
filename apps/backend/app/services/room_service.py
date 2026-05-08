@@ -207,6 +207,13 @@ class RoomService:
 
     def update_task(self, room_id: UUID, task_id: UUID, payload, user: User):
         _, _ = self.require_owner(room_id, user)
+
+        # Сначала обновляем время обновления комнаты, чтобы последующая загрузка
+        # не затерла изменения в задаче через populate_existing=True
+        room = self.rooms.get_room(room_id)
+        if room is not None:
+            self.rooms.touch_room(room)
+
         task = self.rooms.get_task(room_id, task_id)
         if task is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Задача не найдена")
@@ -217,9 +224,6 @@ class RoomService:
                 setattr(task, field, value.strip() if isinstance(value, str) else value)
 
         self.db.add(task)
-        room = self.rooms.get_room(room_id)
-        if room is not None:
-            self.rooms.touch_room(room)
         self.db.commit()
         self.db.refresh(task)
         return task

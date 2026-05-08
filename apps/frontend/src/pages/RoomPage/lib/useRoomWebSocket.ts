@@ -68,7 +68,8 @@ export function useRoomWebSocket({
           message.type === 'round.started' ||
           message.type === 'vote.submitted' ||
           message.type === 'round.revealed' ||
-          message.type === 'round.finalized'
+          message.type === 'round.finalized' ||
+          message.type === 'task.updated'
         ) {
           // Invalidate all room-related queries to trigger refetch
           queryClient.invalidateQueries({ queryKey: ['room'] });

@@ -78,3 +78,48 @@ export async function handleSelectTaskAction({
 
   await selectTask(taskId);
 }
+
+interface HandleUpdateTaskActionParams {
+  taskId: string;
+  title: string;
+  isOwner: boolean;
+  isBusy: boolean;
+  updateTask: (payload: { taskId: string; title: string }) => Promise<unknown>;
+}
+
+export async function handleUpdateTaskAction({
+  taskId,
+  title,
+  isOwner,
+  isBusy,
+  updateTask,
+}: HandleUpdateTaskActionParams): Promise<boolean> {
+  const taskTitle = title.trim();
+  if (!taskTitle || !isOwner || isBusy) {
+    return false;
+  }
+
+  await updateTask({ taskId, title: taskTitle });
+  return true;
+}
+
+interface HandleDeleteTaskActionParams {
+  taskId: string;
+  isOwner: boolean;
+  isBusy: boolean;
+  deleteTask: (taskId: string) => Promise<unknown>;
+}
+
+export async function handleDeleteTaskAction({
+  taskId,
+  isOwner,
+  isBusy,
+  deleteTask,
+}: HandleDeleteTaskActionParams): Promise<boolean> {
+  if (!isOwner || isBusy) {
+    return false;
+  }
+
+  await deleteTask(taskId);
+  return true;
+}

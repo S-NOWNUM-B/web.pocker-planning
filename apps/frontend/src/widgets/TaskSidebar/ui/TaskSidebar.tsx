@@ -32,6 +32,10 @@ interface TaskSidebarProps {
   onNewTaskTitleChange: (value: string) => void;
   onAddTask: () => void;
   onSelectTask: (taskId: string) => void;
+  onUpdateTask: (taskId: string, title: string) => void;
+  onDeleteTask: (taskId: string) => void;
+  onOpenEditModal: (task: { id: string; title: string }) => void;
+  isOwner: boolean;
   className?: string;
 }
 
@@ -45,6 +49,10 @@ export function TaskSidebar({
   onNewTaskTitleChange,
   onAddTask,
   onSelectTask,
+  onUpdateTask,
+  onDeleteTask,
+  onOpenEditModal,
+  isOwner,
   className,
 }: TaskSidebarProps) {
   const [filter, setFilter] = useState<TaskFilter>('all');
@@ -105,38 +113,66 @@ export function TaskSidebar({
             const isActive = task.id === activeTaskId;
 
             return (
-              <Button
-                key={task.id}
-                type="button"
-                onClick={() => !isRevealed && onSelectTask(task.id)}
-                variant="ghost"
-                className={cn(
-                  'group w-full border p-3 text-left transition-all duration-200',
-                  isActive
-                    ? 'border-primary/30 bg-primary/10 shadow-sm ring-1 ring-primary/10'
-                    : task.estimate
-                      ? 'border-border/50 bg-secondary/30 text-muted-foreground opacity-70'
-                      : 'border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card/80',
-                )}
-              >
-                <div className="flex items-start justify-between gap-2 w-full">
-                  <span
-                    className={cn(
-                      'line-clamp-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'text-foreground'
-                        : 'text-muted-foreground group-hover:text-foreground',
-                    )}
-                  >
-                    {task.title}
-                  </span>
-                  {task.estimate && (
-                    <span className="shrink-0 rounded-md bg-secondary text-[10px] font-bold px-1.5 py-0.5 text-muted-foreground border border-border/50">
-                      {task.estimate}
-                    </span>
+              <div key={task.id} className="group relative">
+                <Button
+                  type="button"
+                  onClick={() => !isRevealed && onSelectTask(task.id)}
+                  variant="ghost"
+                  className={cn(
+                    'w-full border p-3 text-left transition-all duration-200',
+                    isActive
+                      ? 'border-primary/30 bg-primary/10 shadow-sm ring-1 ring-primary/10'
+                      : task.estimate
+                        ? 'border-border/50 bg-secondary/30 text-muted-foreground opacity-70'
+                        : 'border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card/80',
                   )}
-                </div>
-              </Button>
+                >
+                  <div className="flex items-start justify-between gap-2 w-full">
+                    <span
+                      className={cn(
+                        'line-clamp-2 text-sm font-medium transition-colors',
+                        isActive
+                          ? 'text-foreground'
+                          : 'text-muted-foreground group-hover:text-foreground',
+                      )}
+                    >
+                      {task.title}
+                    </span>
+                    {task.estimate && (
+                      <span className="shrink-0 rounded-md bg-secondary text-[10px] font-bold px-1.5 py-0.5 text-muted-foreground border border-border/50">
+                        {task.estimate}
+                      </span>
+                    )}
+                  </div>
+                </Button>
+
+                {isOwner && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenEditModal({ id: task.id, title: task.title });
+                      }}
+                    >
+                      <span className="text-[10px]">✎</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (window.confirm('Вы точно хотите удалить эту задачу?')) {
+                          onDeleteTask(task.id);
+                        }
+                      }}
+                    >
+                      <span className="text-[10px]">🗑</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
             );
           })
         )}

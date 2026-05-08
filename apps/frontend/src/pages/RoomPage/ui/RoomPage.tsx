@@ -17,7 +17,10 @@ import {
   handleAddTaskAction,
   handleNextTaskAction,
   handleSelectTaskAction,
+  handleUpdateTaskAction,
+  handleDeleteTaskAction,
 } from '@/features/task-management/lib/roomTaskActions';
+import { EditTaskModal } from '@/features/task-management/ui/EditTaskModal';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { Spinner } from '@/shared/ui';
 import { TrophyIcon } from '@/shared/ui/icons';
@@ -34,11 +37,13 @@ import { useRoomWebSocket } from '../lib/useRoomWebSocket';
 
 export function RoomPage() {
   const { roomId: roomRef } = useRoomParams();
-  const { user } = useSession();
+  const { user, isLoading: sessionLoading } = useSession();
   const queryClient = useQueryClient();
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [pendingCard, setPendingCard] = useState<string | null>(null);
   const [resolvedRoomRef, setResolvedRoomRef] = useState(roomRef);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<{ id: string; title: string } | null>(null);
   const localSession = getLocalSession();
   const roomAccessToken = user ? undefined : localSession?.roomAccessToken;
 
@@ -76,6 +81,17 @@ export function RoomPage() {
 
   const createTaskMutation = useMutation({
     mutationFn: (title: string) => roomApi.createTask(roomId as string, title, roomAccessToken),
+    onSuccess: refreshRoomData,
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ taskId, title }: { taskId: string; title: string }) =>
+      roomApi.updateTask(roomId as string, taskId, title, roomAccessToken),
+    onSuccess: refreshRoomData,
+  });
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: (taskId: string) => roomApi.deleteTask(roomId as string, taskId, roomAccessToken),
     onSuccess: refreshRoomData,
   });
 
@@ -124,11 +140,11 @@ export function RoomPage() {
     });
   }, [localSession?.userName, resolvedRoomRef, roomAccessToken, snapshot, user?.name]);
 
-  if (!user && !roomAccessToken) {
+  if (!user && !roomAccessToken && !sessionLoading) {
     return <Navigate to="/login" replace />;
   }
 
-  if (roomQuery.isLoading) {
+  if (roomQuery.isLoading || sessionLoading) {
     return (
       <div className="flex min-h-[calc(100vh-8.5rem)] items-center justify-center">
         <Spinner size="lg" />
@@ -153,6 +169,8 @@ export function RoomPage() {
 
   const isBusy =
     createTaskMutation.isPending ||
+    updateTaskMutation.isPending ||
+    deleteTaskMutation.isPending ||
     selectTaskMutation.isPending ||
     startRoundMutation.isPending ||
     voteMutation.isPending ||
@@ -220,6 +238,44 @@ export function RoomPage() {
     });
   };
 
+  const handleUpdateTask = async (taskId: string, title: string) => {
+    try {
+      const success = await handleUpdateTaskAction({
+        taskId,
+        title,
+        isOwner,
+        isBusy,
+        updateTask: (payload) => updateTaskMutation.mutateAsync(payload),
+      });
+
+      if (success) {
+        setIsEditModalOpen(false);
+      } else {
+        console.error('Update task failed: action returned false');
+      }
+    } catch (error) {
+      console.error('Update task error:', error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const success = await handleDeleteTaskAction({
+      taskId,
+      isOwner,
+      isBusy,
+      deleteTask: (id) => deleteTaskMutation.mutateAsync(id),
+    });
+
+    if (success) {
+      // Task deleted successfully
+    }
+  };
+
+  const handleOpenEditModal = (task: { id: string; title: string }) => {
+    setTaskToEdit(task);
+    setIsEditModalOpen(true);
+  };
+
   const handleFinalize = async (resultValue: string) => {
     if (!isOwner || !snapshot.active_round) return;
     await finalizeMutation.mutateAsync({
@@ -264,6 +320,10 @@ export function RoomPage() {
           onNewTaskTitleChange={setNewTaskTitle}
           onAddTask={handleAddTask}
           onSelectTask={handleSelectTask}
+          onUpdateTask={handleUpdateTask}
+          onDeleteTask={handleDeleteTask}
+          onOpenEditModal={handleOpenEditModal}
+          isOwner={isOwner}
           className="h-auto min-h-0 lg:h-full lg:max-h-full"
         />
 
@@ -313,6 +373,16 @@ export function RoomPage() {
         isVoting={isBusy}
         onSelectCard={handleSelectCard}
         onConfirmVote={handleConfirmVote}
+      />
+
+      <EditTaskModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSave={(title) => {
+          if (taskToEdit) handleUpdateTask(taskToEdit.id, title);
+        }}
+        initialTitle={taskToEdit?.title ?? ''}
+        isSaving={updateTaskMutation.isPending}
       />
     </div>
   );

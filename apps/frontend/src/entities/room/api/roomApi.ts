@@ -77,6 +77,14 @@ export const roomApi = {
     await api.post(`/rooms/${roomId}/tasks`, { title }, withToken(authToken));
   },
 
+  updateTask: async (roomId: string, taskId: string, title: string, authToken?: string): Promise<void> => {
+    await api.patch(`/rooms/${roomId}/tasks/${taskId}`, { title }, withToken(authToken));
+  },
+
+  deleteTask: async (roomId: string, taskId: string, authToken?: string): Promise<void> => {
+    await api.delete(`/rooms/${roomId}/tasks/${taskId}`, withToken(authToken));
+  },
+
   selectTask: async (roomId: string, taskId: string, authToken?: string): Promise<void> => {
     await api.post(`/rooms/${roomId}/tasks/select`, { task_id: taskId }, withToken(authToken));
   },
