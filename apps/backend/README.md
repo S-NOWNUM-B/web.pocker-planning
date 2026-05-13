@@ -56,7 +56,7 @@ Backend-сервис для приложения Poker Planning обеспечи
 |   Валидация схем    |                      [Pydantic](https://docs.pydantic.dev/)                       |   2.11.3   |
 |      Настройки      | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |   2.8.1    |
 |   Аутентификация    |                      [PyJWT](https://pyjwt.readthedocs.io/)                       |   2.10.1   |
-| Хеширование паролей |                [pwdlib](https://github.com/pwdlib/pwdlib) (argon2)                |   latest   |
+| Хеширование паролей |                [pwdlib](https://github.com/pwdlib/pwdlib) (argon2)                |   0.2.1    |
 |   Валидация email   |       [email-validator](https://github.com/JoshData/python-email-validator)       |   2.2.0    |
 
 </div>

@@ -8,7 +8,7 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vite.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss) ](https://tailwindcss.com/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?logo=postgresql)](https://www.postgresql.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-336791?logo=postgresql)](https://www.postgresql.org/)
 
 </div>
 
@@ -18,11 +18,9 @@
 
 - [О проекте](#о-проекте)
 - [Архитектура](#архитектура)
-- [Структура монорепозитория](#структура-монорепозитория)
 - [Быстрый старт](#быстрый-старт)
-- [Docker](#docker-)
 - [Команды](#команды)
-- [Форматирование и стили](#форматирование-и-стили)
+- [Docker](#docker)
 
 ---
 

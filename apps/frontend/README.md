@@ -36,16 +36,19 @@ Backend подключается как внешний Python-сервис по 
 
 <div align="center">
 
-| **Категория**         | **Технологии**                |
-| :-------------------- | :---------------------------- |
-| Фреймворк             | React 19 + TypeScript         |
-| Сборка                | Vite 6+                       |
-| Роутинг               | React Router (Framework Mode) |
-| Серверный стейт       | TanStack Query 5+             |
-| HTTP-клиент           | Axios                         |
-| Стили                 | Tailwind CSS 4+               |
-| Переиспользуемые типы | `@poker/shared`               |
-| Качество кода         | ESLint + Prettier + Stylelint |
+|        **Категория**        |                **Технологии**                 | **Версия** |
+| :-------------------------: | :-------------------------------------------: | :--------: |
+|        Язык / Рантайм       |        React + TypeScript + Node.js           | 19 / 5.8   |
+|          Сборка             |              [Vite](vite.dev)                 |   6.2.0    |
+|         Роутинг             |      React Router (Framework Mode)            |   7.5.0    |
+|       Серверный кэш         |  [TanStack Query](https://tanstack.com)       |   5.68.0   |
+|       Валидация форм        |    [React Hook Form](https://react-hook-form.io) + [Zod](https://zod.dev)  | 7.50.0 / 3.22.4 |
+|      HTTP-клиент            |         [Axios](https://axios-http.com)       |   1.8.4    |
+|      Состояние клиента      |         [Zustand](https://github.com/pmndrs/zustand)           |   5.0.12   |
+|         UI Компоненты       |     [Headless UI](https://headlessui.dev)     |   2.2.10   |
+|          Стили              |      Tailwind CSS 4 + PostCSS              |   4.1.4    |
+|  Переиспользуемые типы      |           `@poker/shared`                     |    0.1.0   |
+|       Качество кода         |     ESLint + Prettier + Stylelint             |   latest   |
 
 </div>
 
@@ -68,7 +71,18 @@ frontend/
 
 ### Методология: Feature-Sliced Design
 
-Проект запущен на стартовом каркасе. FSD будет вводиться по мере роста модулей (`pages`, `features`, `entities`, `shared`).
+Проект использует FSD (Feature-Sliced Design) с отделением по слоям:
+
+```
+src/
+├── app/          # Инициализация приложения, глобальные провайдеры
+├── pages/        # Страницы приложения (маршруты)
+├── features/     # Бизнес-сценарии (auth, join-room, voting)
+├── entities/     # Доменные сущности (room, user, task)
+├── shared/       # Переиспользуемые UI компоненты, утилиты, конфиги
+├── widgets/      # Составные компоненты (Header, Footer, ParticipantsList)
+└── main.tsx      # Точка входа
+```
 
 ---
 
