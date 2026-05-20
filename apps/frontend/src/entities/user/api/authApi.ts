@@ -1,4 +1,4 @@
-import { api } from '@/shared/api';
+import { api } from '@/shared/api'; // Импорт базового API для выполнения HTTP-запросов
 import type {
   IGuestLoginCredentials,
   IGuestLoginResponse,
@@ -7,8 +7,9 @@ import type {
   IRegisterCredentials,
   IRegisterResponse,
   IUser,
-} from '../model/types';
+} from '../model/types'; // Импорт типов для данных, связанных с аутентификацией и пользователем
 
+// API для работы с аутентификацией и пользователями
 export const userAPI = {
   // Логин пользователя
   login: async (credentials: ILoginCredentails) => {
@@ -35,7 +36,7 @@ export const userAPI = {
   },
 };
 
-export const login = userAPI.login;
-export const register = userAPI.register;
-export const getUser = userAPI.getMe;
-export const loginAsGuest = userAPI.loginAsGuest;
+export const login = userAPI.login; // Экспорт функции для логина пользователя
+export const register = userAPI.register; // Экспорт функции для регистрации пользователя
+export const getUser = userAPI.getMe; // Экспорт функции для получения информации о текущем пользователе
+export const loginAsGuest = userAPI.loginAsGuest; // Экспорт функции для гостевого входа в систему

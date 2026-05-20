@@ -1,14 +1,8 @@
-/**
- * Типы данных сущности «Комната».
- *
- * RoomState — базовое состояние комнаты (импортируется из @poker/shared).
- * RoomStatus — статус комнаты: 'waiting' | 'voting' | 'revealed'.
- * RoomDetails — расширенная информация: createdAt, moderatorId.
- */
-import type { RoomState, RoomStatus } from '@poker/shared';
+import type { RoomState, RoomStatus } from '@poker/shared'; // Импорт типов из общего пакета
 
-export type { RoomState, RoomStatus };
+export type { RoomState, RoomStatus }; // Экспорт типов для использования в других частях приложения
 
+// Дополнительные типы, специфичные для фронтенда
 export interface RoomListItem {
   id: string;
   owner_id: string;
@@ -22,6 +16,7 @@ export interface RoomListItem {
   created_at: string;
 }
 
+// Тип для данных, получаемых при загрузке страницы комнаты
 export interface RoomHistoryItem {
   id: string;
   round_id: string;
@@ -35,6 +30,7 @@ export interface RoomHistoryItem {
   created_at: string;
 }
 
+// Тип для данных, получаемых при загрузке страницы комнаты
 export interface RoomSnapshot {
   room: {
     id: string;
@@ -87,6 +83,7 @@ export interface RoomSnapshot {
   history: RoomHistoryItem[];
 }
 
+// Тип для данных, получаемых при загрузке страницы комнаты с более подробной информацией
 export interface RoomDetails extends RoomState {
   createdAt: string;
   moderatorId: string;

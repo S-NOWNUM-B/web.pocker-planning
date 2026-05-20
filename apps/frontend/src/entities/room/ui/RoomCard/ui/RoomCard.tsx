@@ -1,41 +1,32 @@
-/**
- * Карточка комнаты для дашборда.
- *
- * Отображает:
- *  - Название комнаты
- *  - Статус (через RoomStatusBadge) — опционально, если бэкенд возвращает статус
- *  - Дату создания
- *  - Количество участников
- *  - Кнопку «Открыть»
- *
- * Используется в DashboardPage для списка комнат пользователя.
- */
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@/app/providers';
-import { Card, Button, Modal, Spinner } from '@/shared/ui';
-import { UsersIcon } from '@/shared/ui/icons';
-import { roomApi } from '../../../api/roomApi';
-import type { RoomListItem } from '../../../model/types';
+import { Link } from 'react-router-dom'; // Импорт компонента Link для навигации
+import { useState } from 'react'; // Импорт хука useState для управления состоянием модального окна
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'; // Импорт хуков для работы с асинхронными запросами и кэшированием данных
+import { useSession } from '@/app/providers'; // Импорт хука для получения информации о текущей сессии пользователя
+import { Card, Button, Modal, Spinner } from '@/shared/ui'; // Импорт UI-компонентов для отображения карточки комнаты, кнопок, модального окна и спиннера
+import { UsersIcon } from '@/shared/ui/icons'; // Импорт иконки для отображения количества участников
+import { roomApi } from '../../../api/roomApi'; // Импорт API для работы с комнатами
+import type { RoomListItem } from '../../../model/types'; // Импорт типа для элемента списка комнат
 
+// Компонент для отображения карточки комнаты в списке комнат
 interface RoomCardProps {
   room: RoomListItem;
 }
 
+// Компонент RoomCard отображает информацию о комнате, позволяет войти в комнату, посмотреть результаты голосований и удалить комнату (для владельца)
 export function RoomCard({ room }: RoomCardProps) {
-  const queryClient = useQueryClient();
-  const { user } = useSession();
-  const [isResultsOpen, setIsResultsOpen] = useState(false);
+  const queryClient = useQueryClient(); // Получение клиента для управления кэшем данных
+  const { user } = useSession(); // Получение информации о текущем пользователе из сессии
+  const [isResultsOpen, setIsResultsOpen] = useState(false); // Состояние для управления открытием модального окна с результатами голосований
 
   const deleteRoomMutation = useMutation({
-    mutationFn: () => roomApi.deleteRoom(room.id),
+    mutationFn: () => roomApi.deleteRoom(room.id), // Функция для удаления комнаты по её ID
     onSuccess: () => {
-      setIsResultsOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['rooms'] });
-    },
+      setIsResultsOpen(false); // Закрытие модального окна с результатами при успешном удалении комнаты
+      queryClient.invalidateQueries({ queryKey: ['rooms'] }); // Инвалидация кэша списка комнат для обновления данных после удаления
+    }, // Обработка ошибок при удалении комнаты (можно добавить уведомление пользователю)
   });
 
+  // Запрос для получения истории голосований в комнате при открытии модального окна с результатами
   const {
     data: roomSnapshot,
     isLoading: isHistoryLoading,
@@ -47,17 +38,21 @@ export function RoomCard({ room }: RoomCardProps) {
     staleTime: 30_000,
   });
 
+  // Форматирование даты создания комнаты для отображения в карточке
   const formattedDate = new Date(room.created_at).toLocaleDateString('ru-RU', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
 
+  // Получение идентификатора комнаты для отображения и использования в заголовке модального окна
   const roomIdentifier = room.slug;
   const historyItems = roomSnapshot?.history ?? [];
   const isOwner = user?.id === room.owner_id;
 
   return (
+
+    // Карточка комнаты с информацией о ней и действиями для входа, просмотра результатов и удаления (для владельца)
     <Card className="flex flex-col border border-border/70 bg-card/90 p-5 shadow-lg transition-all hover:border-primary/50 hover:shadow-xl">
       <div className="flex flex-1 flex-col space-y-3">
         <div className="flex items-start justify-between gap-3">

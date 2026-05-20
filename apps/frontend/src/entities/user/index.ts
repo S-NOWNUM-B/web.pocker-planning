@@ -1,9 +1,2 @@
-/**
- * Barrel-экспорт сущности «Пользователь».
- *
- * Экспортирует:
- *  - authApi — REST API для авторизации (login, register, logout, getUser и т.д.)
- *  - User, LoginCredentials, RegisterCredentials, AuthTokens — типы данных
- */
-export * from './api/authApi';
-export * from './model/types';
+export * from './api/authApi'; // Экспорт API для работы с аутентификацией и пользователями (логин, регистрация, получение информации о текущем пользователе и гостевой вход)
+export * from './model/types'; // Экспорт типов для данных, связанных с пользователем и аутентификацией (пользователь, данные для логина, регистрации, гостевого входа и ответы от API)

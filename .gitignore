@@ -71,3 +71,4 @@ vite.config.ts.timestamp-*
 
 # AI generated markdown files
 *.CLAUDE.md
+*.AGENTS.md
