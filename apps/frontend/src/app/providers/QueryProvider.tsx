@@ -1,23 +1,13 @@
-/**
- * Корневой провайдер приложения.
- *
- * Оборачивает всё приложение в:
- *  - SessionProvider — управление состоянием авторизации и восстановление сессии
- *  - QueryClientProvider (TanStack Query) — для серверного состояния
- *
- * Используется в main.tsx как обёртка над <App />.
- *
- * @param children — дочерние компоненты (обычно <App />)
- */
-import { type ReactNode } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/shared/config';
-import { SessionProvider } from './SessionProvider';
+import { type ReactNode } from 'react'; // Импорт типа ReactNode для определения типа пропса children, который может быть любым валидным React-элементом или строкой
+import { QueryClientProvider } from '@tanstack/react-query'; // Импорт компонента QueryClientProvider из библиотеки react-query для предоставления контекста QueryClient всему приложению, что позволяет использовать хуки и функции react-query для управления серверными данными
+import { queryClient } from '@/shared/config'; // Импорт экземпляра QueryClient из конфигурационного файла, который будет использоваться для настройки QueryClientProvider
+import { SessionProvider } from './SessionProvider'; // Импорт компонента SessionProvider, который предоставляет контекст для управления состоянием сессии пользователя, включая аутентификацию и данные пользователя
 
 interface AppProvidersProps {
   children: ReactNode;
 }
 
+// Компонент AppProviders, который оборачивает все приложение в провайдеры SessionProvider и QueryClientProvider, обеспечивая доступ к состоянию сессии и функционалу react-query во всех компонентах приложения
 export function AppProviders({ children }: AppProvidersProps) {
   return (
     <SessionProvider>

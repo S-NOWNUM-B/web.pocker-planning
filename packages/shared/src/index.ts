@@ -1,3 +1,4 @@
+// Типы и интерфейсы, используемые в проекте
 export type VoteValue =
   | '0'
   | '1'
@@ -21,14 +22,16 @@ export type VoteValue =
   | '?'
   | 'coffee';
 
-export type RoomStatus = 'waiting' | 'voting' | 'revealed';
+export type RoomStatus = 'waiting' | 'voting' | 'revealed'; // Статусы комнаты: ожидание, голосование, результаты раскрыты
 
+// Интерфейс для участника комнаты
 export interface Participant {
   id: string;
   name: string;
   hasVoted: boolean;
 }
 
+// Интерфейс для комнаты
 export interface RoomState {
   id: string;
   name: string;
@@ -36,6 +39,7 @@ export interface RoomState {
   participants: Participant[];
 }
 
+// Интерфейс для ответа от API при ошибке
 export interface ApiError {
   statusCode: number;
   error: string;

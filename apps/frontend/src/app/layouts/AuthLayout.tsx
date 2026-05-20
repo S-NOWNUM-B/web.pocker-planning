@@ -1,16 +1,16 @@
-import { type ReactNode } from 'react';
-import { Card, PageShell } from '@/shared/ui';
+import { type ReactNode } from 'react'; // Импорт типа ReactNode для определения типа пропса children
+import { Card, PageShell } from '@/shared/ui'; // Импорт компонентов Card и PageShell из общего UI набора компонентов, которые будут использоваться для оформления страницы аутентификации
 
+// Интерфейс для пропсов компонента AuthLayout, который принимает children для отображения внутри карточки
 interface AuthLayoutProps {
   children: ReactNode;
 }
 
-/**
- * Лейаут для страниц авторизации (login, register).
- * Использует Tailwind CSS для центрирования и стилизации фона.
- */
+// Компонент AuthLayout, который используется для оформления страниц аутентификации (например, входа и регистрации)
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
+
+    // Используем компонент PageShell для создания оболочки страницы с определенными стилями и разметкой
     <PageShell
       maxWidth="md"
       className="min-h-[calc(100vh-8.5rem)]"

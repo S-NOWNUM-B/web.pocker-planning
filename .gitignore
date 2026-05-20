@@ -68,3 +68,6 @@ vite.config.ts.timestamp-*
 # AI generated files
 *.qwen
 *.claude
+
+# AI generated markdown files
+*.CLAUDE.md
