@@ -73,12 +73,21 @@ export const roomApi = {
     await api.delete(`/rooms/${roomId}`);
   },
 
-  createTask: async (roomId: string, title: string, authToken?: string): Promise<void> => {
-    await api.post(`/rooms/${roomId}/tasks`, { title }, withToken(authToken));
+  createTask: async (
+    roomId: string,
+    payload: { title: string; description: string },
+    authToken?: string,
+  ): Promise<void> => {
+    await api.post(`/rooms/${roomId}/tasks`, payload, withToken(authToken));
   },
 
-  updateTask: async (roomId: string, taskId: string, title: string, authToken?: string): Promise<void> => {
-    await api.patch(`/rooms/${roomId}/tasks/${taskId}`, { title }, withToken(authToken));
+  updateTask: async (
+    roomId: string,
+    taskId: string,
+    payload: { title: string; description: string },
+    authToken?: string,
+  ): Promise<void> => {
+    await api.patch(`/rooms/${roomId}/tasks/${taskId}`, payload, withToken(authToken));
   },
 
   deleteTask: async (roomId: string, taskId: string, authToken?: string): Promise<void> => {

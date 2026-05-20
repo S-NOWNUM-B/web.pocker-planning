@@ -27,6 +27,7 @@ export interface Player {
 export interface Task {
   id: string;
   title: string;
+  description: string;
   estimate: string | null;
 }
 

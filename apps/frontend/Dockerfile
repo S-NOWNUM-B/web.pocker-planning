@@ -14,15 +14,15 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (include devDependencies for build tools)
+RUN pnpm install
 
 # Now copy the rest of the source code
 COPY apps/frontend ./apps/frontend
 COPY packages ./packages
 
 # Build the frontend application
-RUN cd apps/frontend && pnpm run build
+RUN pnpm --filter @poker/frontend run build
 
 # Production stage
 FROM nginx:alpine

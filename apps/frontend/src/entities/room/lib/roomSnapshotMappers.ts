@@ -8,6 +8,7 @@ export function mapSnapshotTasks(snapshot: RoomSnapshot): Task[] {
     .map((task) => ({
       id: task.id,
       title: task.title,
+      description: task.description,
       estimate: task.estimate_value,
     }));
 }

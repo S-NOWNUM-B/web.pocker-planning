@@ -3,9 +3,9 @@
  *
  * Левая колонка RoomPage (на десктопе). Содержит:
  *  - Фильтрацию задач (Все, Активные, Завершенные)
- *  - Список задач с отметкой оценённых (SP)
+ *  - Список задач
  *  - Счётчик оценённых/всего задач
- *  - Поле ввода для добавления новой задачи
+ *  - Кнопку создания задачи
  *
  * При клике на задачу — она становится активной для голосования.
  * Оценённые задачи визуально отличаются (приглушённый цвет + бейдж SP).
@@ -20,7 +20,8 @@
  * @param className — дополнительный CSS-класс
  */
 import { useState, useMemo } from 'react';
-import { Input, Button } from '@/shared/ui';
+import { Button } from '@/shared/ui';
+import { EditIcon, TrashIcon } from '@/shared/ui/icons';
 import { cn } from '@/shared/lib';
 import type { Task } from '@/shared/lib/poker';
 
@@ -28,13 +29,11 @@ interface TaskSidebarProps {
   tasks: Task[];
   activeTaskId: string | null;
   isRevealed: boolean;
-  newTaskTitle: string;
-  onNewTaskTitleChange: (value: string) => void;
-  onAddTask: () => void;
   onSelectTask: (taskId: string) => void;
-  onUpdateTask: (taskId: string, title: string) => void;
   onDeleteTask: (taskId: string) => void;
-  onOpenEditModal: (task: { id: string; title: string }) => void;
+  onOpenCreateModal: () => void;
+  onOpenTaskModal: (task: Task) => void;
+  onOpenEditModal: (task: Task) => void;
   isOwner: boolean;
   className?: string;
 }
@@ -45,13 +44,11 @@ export function TaskSidebar({
   tasks,
   activeTaskId,
   isRevealed,
-  newTaskTitle,
-  onNewTaskTitleChange,
-  onAddTask,
   onSelectTask,
-  onUpdateTask,
   onDeleteTask,
   onOpenEditModal,
+  onOpenCreateModal,
+  onOpenTaskModal,
   isOwner,
   className,
 }: TaskSidebarProps) {
@@ -116,7 +113,12 @@ export function TaskSidebar({
               <div key={task.id} className="group relative">
                 <Button
                   type="button"
-                  onClick={() => !isRevealed && onSelectTask(task.id)}
+                  onClick={() => {
+                    onOpenTaskModal(task);
+                    if (!isRevealed) {
+                      onSelectTask(task.id);
+                    }
+                  }}
                   variant="ghost"
                   className={cn(
                     'w-full border p-3 text-left transition-all duration-200',
@@ -127,7 +129,7 @@ export function TaskSidebar({
                         : 'border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card/80',
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2 w-full">
+                  <div className="flex items-start gap-2 w-full">
                     <span
                       className={cn(
                         'line-clamp-2 text-sm font-medium transition-colors',
@@ -138,29 +140,29 @@ export function TaskSidebar({
                     >
                       {task.title}
                     </span>
-                    {task.estimate && (
-                      <span className="shrink-0 rounded-md bg-secondary text-[10px] font-bold px-1.5 py-0.5 text-muted-foreground border border-border/50">
-                        {task.estimate}
-                      </span>
-                    )}
                   </div>
                 </Button>
 
                 {isOwner && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex items-center gap-1 opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="group h-7 w-7 p-0 text-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenEditModal({ id: task.id, title: task.title });
+                        onOpenEditModal(task);
                       }}
                     >
-                      <span className="text-[10px]">✎</span>
+                      <EditIcon
+                        className="h-4 w-4 flex-none"
+                        stroke="var(--primary)"
+                        strokeWidth={1.6}
+                        style={{ width: 16, height: 16 }}
+                      />
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="group h-7 w-7 p-0 text-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm('Вы точно хотите удалить эту задачу?')) {
@@ -168,7 +170,12 @@ export function TaskSidebar({
                         }
                       }}
                     >
-                      <span className="text-[10px]">🗑</span>
+                      <TrashIcon
+                        className="h-4 w-4 flex-none"
+                        stroke="var(--destructive)"
+                        strokeWidth={1.6}
+                        style={{ width: 16, height: 16 }}
+                      />
                     </Button>
                   </div>
                 )}
@@ -178,28 +185,15 @@ export function TaskSidebar({
         )}
       </div>
 
-      <div className="relative group">
-        <Input
-          value={newTaskTitle}
-          onChange={(event) => onNewTaskTitleChange(event.target.value)}
-          placeholder="Название новой задачи..."
-          className="h-11 w-full rounded-xl border-border/50 bg-background/50 transition-all group-focus-within:border-primary/50 group-focus-within:ring-1 group-focus-within:ring-primary/20"
-          style={{ paddingRight: '2.75rem' }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              onAddTask();
-            }
-          }}
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-          <Button
-            onClick={onAddTask}
-            variant="ghost"
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
-          >
-            <span className="text-lg leading-none">+</span>
-          </Button>
-        </div>
+      <div className="pt-2">
+        <Button
+          onClick={onOpenCreateModal}
+          disabled={!isOwner}
+          className="w-full rounded-xl"
+          variant="ghost"
+        >
+          Новая задача
+        </Button>
       </div>
     </aside>
   );
