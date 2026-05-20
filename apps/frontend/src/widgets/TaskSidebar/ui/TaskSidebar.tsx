@@ -144,20 +144,25 @@ export function TaskSidebar({
                 </Button>
 
                 {isOwner && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity">
+                  <div className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex items-center gap-1 opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="group h-7 w-7 p-0 text-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenEditModal(task);
                       }}
                     >
-                      <EditIcon className="h-4 w-4" strokeWidth={2.2} />
+                      <EditIcon
+                        className="h-4 w-4 flex-none"
+                        stroke="var(--primary)"
+                        strokeWidth={1.6}
+                        style={{ width: 16, height: 16 }}
+                      />
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="group h-7 w-7 p-0 text-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm('Вы точно хотите удалить эту задачу?')) {
@@ -165,7 +170,12 @@ export function TaskSidebar({
                         }
                       }}
                     >
-                      <TrashIcon className="h-4 w-4" strokeWidth={2.2} />
+                      <TrashIcon
+                        className="h-4 w-4 flex-none"
+                        stroke="var(--destructive)"
+                        strokeWidth={1.6}
+                        style={{ width: 16, height: 16 }}
+                      />
                     </Button>
                   </div>
                 )}
