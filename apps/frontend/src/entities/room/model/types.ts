@@ -63,6 +63,7 @@ export interface RoomSnapshot {
   tasks: Array<{
     id: string;
     title: string;
+    description: string;
     status: 'backlog' | 'active' | 'estimated';
     estimate_value: string | null;
     position: number;

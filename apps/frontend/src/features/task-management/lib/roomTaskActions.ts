@@ -1,5 +1,8 @@
 import type { RoomSnapshot } from '@/entities/room/model/types';
 
+const MAX_TITLE_LENGTH = 50;
+const MAX_DESCRIPTION_LENGTH = 500;
+
 interface HandleNextTaskActionParams {
   snapshot: RoomSnapshot;
   isOwner: boolean;
@@ -35,25 +38,35 @@ export async function handleNextTaskAction({
 
 interface HandleAddTaskActionParams {
   title: string;
+  description: string;
   roomId?: string;
   isOwner: boolean;
   isBusy: boolean;
-  createTask: (taskTitle: string) => Promise<unknown>;
+  createTask: (payload: { title: string; description: string }) => Promise<unknown>;
 }
 
 export async function handleAddTaskAction({
   title,
+  description,
   roomId,
   isOwner,
   isBusy,
   createTask,
 }: HandleAddTaskActionParams): Promise<boolean> {
   const taskTitle = title.trim();
-  if (!taskTitle || !isOwner || !roomId || isBusy) {
+  const taskDescription = description.trim();
+  if (
+    !taskTitle ||
+    taskTitle.length > MAX_TITLE_LENGTH ||
+    taskDescription.length > MAX_DESCRIPTION_LENGTH ||
+    !isOwner ||
+    !roomId ||
+    isBusy
+  ) {
     return false;
   }
 
-  await createTask(taskTitle);
+  await createTask({ title: taskTitle, description: taskDescription });
   return true;
 }
 
@@ -82,24 +95,33 @@ export async function handleSelectTaskAction({
 interface HandleUpdateTaskActionParams {
   taskId: string;
   title: string;
+  description: string;
   isOwner: boolean;
   isBusy: boolean;
-  updateTask: (payload: { taskId: string; title: string }) => Promise<unknown>;
+  updateTask: (payload: { taskId: string; title: string; description: string }) => Promise<unknown>;
 }
 
 export async function handleUpdateTaskAction({
   taskId,
   title,
+  description,
   isOwner,
   isBusy,
   updateTask,
 }: HandleUpdateTaskActionParams): Promise<boolean> {
   const taskTitle = title.trim();
-  if (!taskTitle || !isOwner || isBusy) {
+  const taskDescription = description.trim();
+  if (
+    !taskTitle ||
+    taskTitle.length > MAX_TITLE_LENGTH ||
+    taskDescription.length > MAX_DESCRIPTION_LENGTH ||
+    !isOwner ||
+    isBusy
+  ) {
     return false;
   }
 
-  await updateTask({ taskId, title: taskTitle });
+  await updateTask({ taskId, title: taskTitle, description: taskDescription });
   return true;
 }
 

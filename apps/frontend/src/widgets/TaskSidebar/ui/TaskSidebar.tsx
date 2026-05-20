@@ -20,7 +20,7 @@
  * @param className — дополнительный CSS-класс
  */
 import { useState, useMemo } from 'react';
-import { Input, Button } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 import { cn } from '@/shared/lib';
 import type { Task } from '@/shared/lib/poker';
 
@@ -28,13 +28,11 @@ interface TaskSidebarProps {
   tasks: Task[];
   activeTaskId: string | null;
   isRevealed: boolean;
-  newTaskTitle: string;
-  onNewTaskTitleChange: (value: string) => void;
-  onAddTask: () => void;
   onSelectTask: (taskId: string) => void;
-  onUpdateTask: (taskId: string, title: string) => void;
   onDeleteTask: (taskId: string) => void;
-  onOpenEditModal: (task: { id: string; title: string }) => void;
+  onOpenCreateModal: () => void;
+  onOpenTaskModal: (task: Task) => void;
+  onOpenEditModal: (task: Task) => void;
   isOwner: boolean;
   className?: string;
 }
@@ -45,13 +43,11 @@ export function TaskSidebar({
   tasks,
   activeTaskId,
   isRevealed,
-  newTaskTitle,
-  onNewTaskTitleChange,
-  onAddTask,
   onSelectTask,
-  onUpdateTask,
   onDeleteTask,
   onOpenEditModal,
+  onOpenCreateModal,
+  onOpenTaskModal,
   isOwner,
   className,
 }: TaskSidebarProps) {
@@ -116,7 +112,12 @@ export function TaskSidebar({
               <div key={task.id} className="group relative">
                 <Button
                   type="button"
-                  onClick={() => !isRevealed && onSelectTask(task.id)}
+                  onClick={() => {
+                    onOpenTaskModal(task);
+                    if (!isRevealed) {
+                      onSelectTask(task.id);
+                    }
+                  }}
                   variant="ghost"
                   className={cn(
                     'w-full border p-3 text-left transition-all duration-200',
@@ -147,13 +148,13 @@ export function TaskSidebar({
                 </Button>
 
                 {isOwner && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity">
                     <Button
                       variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenEditModal({ id: task.id, title: task.title });
+                        onOpenEditModal(task);
                       }}
                     >
                       <span className="text-[10px]">✎</span>
@@ -178,28 +179,15 @@ export function TaskSidebar({
         )}
       </div>
 
-      <div className="relative group">
-        <Input
-          value={newTaskTitle}
-          onChange={(event) => onNewTaskTitleChange(event.target.value)}
-          placeholder="Название новой задачи..."
-          className="h-11 w-full rounded-xl border-border/50 bg-background/50 transition-all group-focus-within:border-primary/50 group-focus-within:ring-1 group-focus-within:ring-primary/20"
-          style={{ paddingRight: '2.75rem' }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              onAddTask();
-            }
-          }}
-        />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2">
-          <Button
-            onClick={onAddTask}
-            variant="ghost"
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
-          >
-            <span className="text-lg leading-none">+</span>
-          </Button>
-        </div>
+      <div className="pt-2">
+        <Button
+          onClick={onOpenCreateModal}
+          disabled={!isOwner}
+          className="w-full rounded-xl"
+          variant="ghost"
+        >
+          Новая задача
+        </Button>
       </div>
     </aside>
   );

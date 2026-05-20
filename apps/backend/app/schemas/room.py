@@ -36,14 +36,14 @@ class InvitationLinkResponse(BaseModel):
 
 
 class TaskCreateRequest(BaseModel):
-    title: str = Field(min_length=2, max_length=240)
-    description: str = Field(default="", max_length=2000)
+    title: str = Field(min_length=1, max_length=50)
+    description: str = Field(default="", max_length=500)
     position: int | None = Field(default=None, ge=0)
 
 
 class TaskUpdateRequest(BaseModel):
-    title: str | None = Field(default=None, min_length=2, max_length=240)
-    description: str | None = Field(default=None, max_length=2000)
+    title: str | None = Field(default=None, min_length=1, max_length=50)
+    description: str | None = Field(default=None, max_length=500)
     position: int | None = Field(default=None, ge=0)
 
 

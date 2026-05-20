@@ -20,7 +20,7 @@ import {
   handleUpdateTaskAction,
   handleDeleteTaskAction,
 } from '@/features/task-management/lib/roomTaskActions';
-import { EditTaskModal } from '@/features/task-management/ui/EditTaskModal';
+import { TaskModal } from '@/features/task-management/ui/TaskModal';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { Spinner } from '@/shared/ui';
 import { TrophyIcon } from '@/shared/ui/icons';
@@ -29,6 +29,7 @@ import {
   loadRoomSnapshotWithToken,
   roomRefLooksLikeCode,
 } from '@/shared/lib/room';
+import type { Task } from '@/shared/lib/poker';
 import { persistRoomSession } from '@/shared/lib/session/persistRoomSession';
 import { SessionManager } from '@/shared/lib/session';
 import { ParticipantsList, RoomFooter, RoomHeader, RoomResults, TaskSidebar } from '@/widgets';
@@ -39,11 +40,10 @@ export function RoomPage() {
   const { roomId: roomRef } = useRoomParams();
   const { user, isLoading: sessionLoading } = useSession();
   const queryClient = useQueryClient();
-  const [newTaskTitle, setNewTaskTitle] = useState('');
   const [pendingCard, setPendingCard] = useState<string | null>(null);
   const [resolvedRoomRef, setResolvedRoomRef] = useState(roomRef);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<{ id: string; title: string } | null>(null);
+  const [taskModalMode, setTaskModalMode] = useState<'create' | 'view' | 'edit' | null>(null);
+  const [taskModalTask, setTaskModalTask] = useState<Task | null>(null);
   const localSession = getLocalSession();
   const roomAccessToken = user ? undefined : localSession?.roomAccessToken;
 
@@ -80,13 +80,21 @@ export function RoomPage() {
   };
 
   const createTaskMutation = useMutation({
-    mutationFn: (title: string) => roomApi.createTask(roomId as string, title, roomAccessToken),
+    mutationFn: (payload: { title: string; description: string }) =>
+      roomApi.createTask(roomId as string, payload, roomAccessToken),
     onSuccess: refreshRoomData,
   });
 
   const updateTaskMutation = useMutation({
-    mutationFn: ({ taskId, title }: { taskId: string; title: string }) =>
-      roomApi.updateTask(roomId as string, taskId, title, roomAccessToken),
+    mutationFn: ({
+      taskId,
+      title,
+      description,
+    }: {
+      taskId: string;
+      title: string;
+      description: string;
+    }) => roomApi.updateTask(roomId as string, taskId, { title, description }, roomAccessToken),
     onSuccess: refreshRoomData,
   });
 
@@ -214,17 +222,33 @@ export function RoomPage() {
     });
   };
 
-  const handleAddTask = async () => {
+  const openCreateTaskModal = () => {
+    setTaskModalTask(null);
+    setTaskModalMode('create');
+  };
+
+  const openViewTaskModal = (task: Task) => {
+    setTaskModalTask(task);
+    setTaskModalMode('view');
+  };
+
+  const openEditTaskModal = (task: Task) => {
+    setTaskModalTask(task);
+    setTaskModalMode('edit');
+  };
+
+  const handleCreateTask = async (title: string, description: string) => {
     const isTaskCreated = await handleAddTaskAction({
-      title: newTaskTitle,
+      title,
+      description,
       roomId,
       isOwner,
       isBusy,
-      createTask: (title) => createTaskMutation.mutateAsync(title),
+      createTask: (payload) => createTaskMutation.mutateAsync(payload),
     });
 
     if (isTaskCreated) {
-      setNewTaskTitle('');
+      setTaskModalMode(null);
     }
   };
 
@@ -238,18 +262,19 @@ export function RoomPage() {
     });
   };
 
-  const handleUpdateTask = async (taskId: string, title: string) => {
+  const handleUpdateTask = async (taskId: string, title: string, description: string) => {
     try {
       const success = await handleUpdateTaskAction({
         taskId,
         title,
+        description,
         isOwner,
         isBusy,
         updateTask: (payload) => updateTaskMutation.mutateAsync(payload),
       });
 
       if (success) {
-        setIsEditModalOpen(false);
+        setTaskModalMode(null);
       } else {
         console.error('Update task failed: action returned false');
       }
@@ -271,9 +296,10 @@ export function RoomPage() {
     }
   };
 
-  const handleOpenEditModal = (task: { id: string; title: string }) => {
-    setTaskToEdit(task);
-    setIsEditModalOpen(true);
+  const handleRequestEdit = () => {
+    if (taskModalTask) {
+      setTaskModalMode('edit');
+    }
   };
 
   const handleFinalize = async (resultValue: string) => {
@@ -283,6 +309,10 @@ export function RoomPage() {
       resultValue,
     });
   };
+
+  const isTaskModalOpen = taskModalMode !== null;
+  const resolvedTaskModalMode = taskModalMode ?? 'view';
+  const isTaskSaving = createTaskMutation.isPending || updateTaskMutation.isPending;
 
   const footerInset = '14rem';
 
@@ -316,13 +346,11 @@ export function RoomPage() {
           tasks={tasks}
           activeTaskId={activeTaskId}
           isRevealed={isRevealed}
-          newTaskTitle={newTaskTitle}
-          onNewTaskTitleChange={setNewTaskTitle}
-          onAddTask={handleAddTask}
           onSelectTask={handleSelectTask}
-          onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
-          onOpenEditModal={handleOpenEditModal}
+          onOpenCreateModal={openCreateTaskModal}
+          onOpenTaskModal={openViewTaskModal}
+          onOpenEditModal={openEditTaskModal}
           isOwner={isOwner}
           className="h-auto min-h-0 lg:h-full lg:max-h-full"
         />
@@ -375,14 +403,16 @@ export function RoomPage() {
         onConfirmVote={handleConfirmVote}
       />
 
-      <EditTaskModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSave={(title) => {
-          if (taskToEdit) handleUpdateTask(taskToEdit.id, title);
-        }}
-        initialTitle={taskToEdit?.title ?? ''}
-        isSaving={updateTaskMutation.isPending}
+      <TaskModal
+        isOpen={isTaskModalOpen}
+        mode={resolvedTaskModalMode}
+        task={taskModalTask ?? undefined}
+        isOwner={isOwner}
+        isSaving={isTaskSaving}
+        onClose={() => setTaskModalMode(null)}
+        onCreate={(payload) => handleCreateTask(payload.title, payload.description)}
+        onUpdate={(payload) => handleUpdateTask(payload.id, payload.title, payload.description)}
+        onRequestEdit={handleRequestEdit}
       />
     </div>
   );
