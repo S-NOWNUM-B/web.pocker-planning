@@ -166,8 +166,15 @@ export function RoomPage() {
 
   const selfParticipant = snapshot.self_participant_id
     ? snapshot.participants.find((participant) => participant.id === snapshot.self_participant_id)
-    : null;
-  const isOwner = selfParticipant?.role === 'owner';
+    : snapshot.participants.find((participant) => participant.user_id === user?.id) ||
+      (localSession?.selfParticipantId
+        ? snapshot.participants.find(
+            (participant) => participant.id === localSession.selfParticipantId,
+          )
+        : null);
+  const isOwner =
+    selfParticipant?.role === 'owner' ||
+    (Boolean(user?.id) && snapshot.room.owner_id === user?.id);
   const currentUserName = user?.name || selfParticipant?.name || localSession?.userName || 'Гость';
   const tasks = mapSnapshotTasks(snapshot);
   const players = mapSnapshotPlayers(snapshot);

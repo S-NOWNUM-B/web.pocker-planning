@@ -10,6 +10,7 @@ type TaskModalTask = {
   id: string;
   title: string;
   description: string;
+  estimate: string | null;
 };
 
 interface TaskModalProps {
@@ -102,6 +103,16 @@ export function TaskModal({
                 {task?.title || 'Без названия'}
               </div>
             </div>
+            {task?.estimate && (
+              <div className="space-y-2">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Оценка
+                </div>
+                <div className="inline-flex items-center justify-center rounded-xl border border-border/60 bg-secondary/30 px-3 py-2 text-sm font-semibold text-foreground">
+                  {task.estimate}
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Описание

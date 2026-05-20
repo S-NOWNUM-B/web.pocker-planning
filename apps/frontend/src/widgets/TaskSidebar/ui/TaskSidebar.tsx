@@ -3,9 +3,9 @@
  *
  * Левая колонка RoomPage (на десктопе). Содержит:
  *  - Фильтрацию задач (Все, Активные, Завершенные)
- *  - Список задач с отметкой оценённых (SP)
+ *  - Список задач
  *  - Счётчик оценённых/всего задач
- *  - Поле ввода для добавления новой задачи
+ *  - Кнопку создания задачи
  *
  * При клике на задачу — она становится активной для голосования.
  * Оценённые задачи визуально отличаются (приглушённый цвет + бейдж SP).
@@ -21,6 +21,7 @@
  */
 import { useState, useMemo } from 'react';
 import { Button } from '@/shared/ui';
+import { EditIcon, TrashIcon } from '@/shared/ui/icons';
 import { cn } from '@/shared/lib';
 import type { Task } from '@/shared/lib/poker';
 
@@ -128,7 +129,7 @@ export function TaskSidebar({
                         : 'border-border/50 bg-card/50 hover:border-primary/30 hover:bg-card/80',
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2 w-full">
+                  <div className="flex items-start gap-2 w-full">
                     <span
                       className={cn(
                         'line-clamp-2 text-sm font-medium transition-colors',
@@ -139,11 +140,6 @@ export function TaskSidebar({
                     >
                       {task.title}
                     </span>
-                    {task.estimate && (
-                      <span className="shrink-0 rounded-md bg-secondary text-[10px] font-bold px-1.5 py-0.5 text-muted-foreground border border-border/50">
-                        {task.estimate}
-                      </span>
-                    )}
                   </div>
                 </Button>
 
@@ -151,17 +147,17 @@ export function TaskSidebar({
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 transition-opacity">
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="h-7 w-7 p-0 text-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         onOpenEditModal(task);
                       }}
                     >
-                      <span className="text-[10px]">✎</span>
+                      <EditIcon className="h-4 w-4" strokeWidth={2.2} />
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
+                      className="h-7 w-7 p-0 text-foreground hover:text-destructive bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (window.confirm('Вы точно хотите удалить эту задачу?')) {
@@ -169,7 +165,7 @@ export function TaskSidebar({
                         }
                       }}
                     >
-                      <span className="text-[10px]">🗑</span>
+                      <TrashIcon className="h-4 w-4" strokeWidth={2.2} />
                     </Button>
                   </div>
                 )}
