@@ -1,7 +1,7 @@
-import { createBrowserRouter, Outlet } from 'react-router-dom';
-import { AuthLayout, RootLayout } from '../layouts';
-import { authLoader, publicOnlyLoader } from './loaders';
-import { loginAction, registerAction } from './actions';
+import { createBrowserRouter, Outlet } from 'react-router-dom'; // Импорт функции для создания маршрутизатора и компонента Outlet для отображения вложенных маршрутов
+import { AuthLayout, RootLayout } from '../layouts'; // Импорт лейаутов для аутентификации и корневого лейаута
+import { authLoader, publicOnlyLoader } from './loaders'; // Импорт загрузчиков для маршрутов, которые проверяют аутентификацию пользователя и перенаправляют при необходимости
+import { loginAction, registerAction } from './actions'; // Импорт действий для обработки форм входа и регистрации, которые выполняются при отправке форм на соответствующих маршрутах
 import {
   OnboardingPage,
   CreateRoomPage,
@@ -13,8 +13,9 @@ import {
   AboutPage,
   RoomPage,
   NotFoundPage,
-} from '../../pages';
+} from '../../pages'; // Импорт всех страниц приложения, которые будут использоваться в маршрутах
 
+// Вспомогательный компонент для оборачивания страниц входа и регистрации в лейаут аутентификации, чтобы обеспечить единый стиль и структуру для этих страниц
 function AuthLayoutWrapper() {
   return (
     <AuthLayout>
@@ -23,6 +24,7 @@ function AuthLayoutWrapper() {
   );
 }
 
+// Создание маршрутизатора с определением всех маршрутов приложения, их компонентов, загрузчиков и действий
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,

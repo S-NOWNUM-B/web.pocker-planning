@@ -1,6 +1,1 @@
-/**
- * Экспорт маршрутизации приложения.
- *
- * router — объект роутера, созданный через createBrowserRouter (React Router Framework Mode).
- */
-export { router } from './routes';
+export { router } from './routes'; // Экспорт объекта маршрутизатора, который содержит все маршруты приложения, для использования в других частях приложения

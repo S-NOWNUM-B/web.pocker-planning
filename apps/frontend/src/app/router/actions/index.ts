@@ -1,2 +1,2 @@
-export { loginAction } from './loginAction';
-export { registerAction } from './registerAction';
+export { loginAction } from './loginAction'; // Экспорт функции для выполнения действия входа в систему, которая может быть использована в других частях приложения для обработки логики аутентификации
+export { registerAction } from './registerAction'; // Экспорт функции для выполнения действия регистрации, которая может быть использована в других частях приложения для обработки логики создания нового пользователя
