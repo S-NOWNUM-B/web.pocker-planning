@@ -1,6 +1,1 @@
-/**
- * Экспорт фичи присоединения к комнате.
- *
- * JoinRoomForm — форма ввода ID комнаты для входа.
- */
-export { JoinRoomForm } from './ui/JoinRoomForm';
+export { JoinRoomForm } from './ui/JoinRoomForm'; // Импортируем и экспортируем компонент JoinRoomForm

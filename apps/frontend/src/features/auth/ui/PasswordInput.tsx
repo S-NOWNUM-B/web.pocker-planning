@@ -1,18 +1,21 @@
-import { Field, Input as HeadlessInput, Label } from '@headlessui/react';
-import { forwardRef, useState, type ChangeEvent } from 'react';
-import { CheckIcon, EyeIcon } from '@/shared/ui/icons';
-import type { InputProps } from '@/shared/ui/Input';
+import { Field, Input as HeadlessInput, Label } from '@headlessui/react'; // Используем компоненты из Headless UI для создания стилизованного поля ввода пароля
+import { forwardRef, useState, type ChangeEvent } from 'react'; // Импортируем необходимые хуки и типы из React
+import { CheckIcon, EyeIcon } from '@/shared/ui/icons'; // Импортируем иконки для отображения состояния требований к паролю и переключения видимости
+import type { InputProps } from '@/shared/ui/Input'; // Импортируем типы пропсов для базового компонента Input, который будет расширяться
 
+// Определяем интерфейс пропсов для компонента PasswordInput, расширяя базовые пропсы Input и добавляя дополнительные опции
 interface PasswordInputProps extends Omit<InputProps, 'type'> {
   showRequirements?: boolean;
   showVisibilityToggle?: boolean;
 }
 
+// Интерфейс для описания каждого требования к паролю, включающего метку и флаг, указывающий, выполнено ли требование
 interface RequirementItem {
   label: string;
   isMet: boolean;
 }
 
+// Функция для получения текстовой метки, описывающей силу пароля на основе количества выполненных требований
 const getStrengthLabel = (score: number) => {
   if (score <= 1) {
     return 'Слабый пароль';
@@ -25,6 +28,7 @@ const getStrengthLabel = (score: number) => {
   return 'Надёжный пароль';
 };
 
+// Компонент PasswordInput, который реализует поле ввода пароля с отображением требований и возможностью переключения видимости пароля. Используем forwardRef для передачи рефа к базовому элементу input.
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   (
     {

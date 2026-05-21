@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'; // Импортируем библиотеку zod для создания схем валидации
 
 // Схема для валидации данных пользователя
 export const UserShema = z.object({
@@ -51,9 +51,8 @@ export const RegisterResponseSchema = z.object({
   token_type: z.literal('bearer'),
 });
 
-// Типы данных, выводимые из схем
-export type User = z.infer<typeof UserShema>;
-export type LoginCredentials = z.infer<typeof LoginSchema>;
-export type RegisterCredentials = z.infer<typeof RegisterSchema>;
-export type LoginResponse = z.infer<typeof LoginResponseSchema>;
-export type RegisterResponse = z.infer<typeof RegisterResponseSchema>;
+export type User = z.infer<typeof UserShema>; // Тип для данных пользователя, выводимый из схемы UserShema
+export type LoginCredentials = z.infer<typeof LoginSchema>; // Тип для данных при логине, выводимый из схемы LoginSchema
+export type RegisterCredentials = z.infer<typeof RegisterSchema>; // Тип для данных при регистрации, выводимый из схемы RegisterSchema
+export type LoginResponse = z.infer<typeof LoginResponseSchema>; // Тип для ответа при логине, выводимый из схемы LoginResponseSchema
+export type RegisterResponse = z.infer<typeof RegisterResponseSchema>; // Тип для ответа при регистрации, выводимый из схемы RegisterResponseSchema

@@ -1,15 +1,17 @@
-import { useMemo } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { Link, useActionData, useNavigation, useSubmit } from 'react-router-dom';
-import { Button, Input } from '@/shared/ui';
-import { LoginSchema, RegisterSchema } from '../../../model/schemas';
-import { PasswordInput } from '../../PasswordInput';
+import { useMemo } from 'react'; // Импортируем необходимые хуки и компоненты
+import { zodResolver } from '@hookform/resolvers/zod'; // Импортируем резолвер для интеграции zod с react-hook-form
+import { useForm } from 'react-hook-form'; // Импортируем хук для управления формой
+import { Link, useActionData, useNavigation, useSubmit } from 'react-router-dom'; // Импортируем компоненты для навигации и работы с формой
+import { Button, Input } from '@/shared/ui'; // Импортируем общие UI компоненты
+import { LoginSchema, RegisterSchema } from '../../../model/schemas'; // Импортируем схемы валидации для логина и регистрации
+import { PasswordInput } from '../../PasswordInput'; // Импортируем компонент для ввода пароля
 
+// Интерфейс для пропсов компонента AuthForm
 interface AuthFormProps {
   mode: 'login' | 'register';
 }
 
+// Тип для значений формы, включающий поля для логина и регистрации
 type AuthFormValues = {
   email: string;
   password: string;
@@ -17,11 +19,13 @@ type AuthFormValues = {
   confirmPassword?: string;
 };
 
+// Дефолтные значения для форм логина и регистрации
 const loginDefaults = {
   email: '',
   password: '',
 };
 
+// Дефолтные значения для формы регистрации
 const registerDefaults = {
   email: '',
   name: '',
@@ -29,13 +33,15 @@ const registerDefaults = {
   confirmPassword: '',
 };
 
+// Компонент для отображения формы логина и регистрации
 export function AuthForm({ mode }: AuthFormProps) {
-  const navigation = useNavigation();
-  const submit = useSubmit();
-  const actionData = useActionData() as { error?: string } | undefined;
+  const navigation = useNavigation(); // Хук для отслеживания состояния навигации
+  const submit = useSubmit(); // Хук для отправки формы
+  const actionData = useActionData() as { error?: string } | undefined; // Получаем данные, возвращаемые действием при отправке формы
 
-  const schema = useMemo(() => (mode === 'login' ? LoginSchema : RegisterSchema), [mode]);
+  const schema = useMemo(() => (mode === 'login' ? LoginSchema : RegisterSchema), [mode]); // Выбираем схему валидации в зависимости от режима (логин или регистрация)
 
+  // Инициализируем форму с помощью useForm, передавая резолвер для валидации и дефолтные значения
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(schema),
     defaultValues: mode === 'login' ? loginDefaults : registerDefaults,
@@ -43,9 +49,10 @@ export function AuthForm({ mode }: AuthFormProps) {
     shouldFocusError: false,
   });
 
-  const isRegister = mode === 'register';
-  const isSubmitting = navigation.state === 'submitting';
+  const isRegister = mode === 'register'; // Флаг для определения, находится ли форма в режиме регистрации
+  const isSubmitting = navigation.state === 'submitting'; // Флаг для определения, отправляется ли форма в данный момент
 
+  // Функция для обработки отправки формы
   const onSubmit = (data: AuthFormValues) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {

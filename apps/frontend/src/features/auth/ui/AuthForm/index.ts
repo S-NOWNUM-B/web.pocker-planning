@@ -1,4 +1,1 @@
-/**
- * Экспорт формы авторизации AuthForm.
- */
-export { AuthForm } from './ui/AuthForm';
+export { AuthForm } from './ui/AuthForm'; // Используем абсолютный импорт для удобства и лучшей читаемости кода
