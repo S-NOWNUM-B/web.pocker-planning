@@ -1,9 +1,4 @@
-/**
- * Страница «О приложении».
- *
- * Информация о Poker.Planning приложении.
- */
-import { Button, Card, PageShell } from '@/shared/ui';
+import { Button, Card, PageShell } from '@/shared/ui'; // Импортируем компоненты Button, Card и PageShell из общей библиотеки пользовательского интерфейса для использования в структуре и оформлении страницы "О нас".
 
 export function AboutPage() {
   const sectionContainerClass = 'mx-auto w-full max-w-7xl';
@@ -85,6 +80,7 @@ export function AboutPage() {
               а не как формальное голосование ради числа. Поэтому мы придерживаемся следующих
               принципов:
             </p>
+            
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {[
                 'Сначала независимая оценка, потом обсуждение расхождений',

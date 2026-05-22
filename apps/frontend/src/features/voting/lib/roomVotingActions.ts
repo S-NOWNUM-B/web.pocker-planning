@@ -33,7 +33,7 @@ export async function handleSelectCardAction({
       return;
     }
 
-    const startedSnapshot = await startRound(activeTask.id);
+    const startedSnapshot = await startRound(activeTask.id); // Если нет активного раунда, и пользователь является владельцем, запускаем новый раунд для текущей задачи и получаем обновленный снимок комнаты после запуска раунда.
     if (!startedSnapshot.active_round) {
       return;
     }
@@ -55,6 +55,7 @@ export async function handleSelectCardAction({
   });
 }
 
+// Интерфейс для параметров функции обработки действия "Показать результаты"
 interface HandleRevealActionParams {
   snapshot: RoomSnapshot;
   isOwner: boolean;
@@ -62,6 +63,7 @@ interface HandleRevealActionParams {
   revealRound: (roundId: string) => Promise<unknown>;
 }
 
+// Эта функция обрабатывает действие показа результатов голосования. Она проверяет, что пользователь является владельцем, что есть активный раунд в статусе "голосование" и что не происходит другой операции (isBusy), а затем вызывает функцию для показа результатов раунда.
 export async function handleRevealAction({
   snapshot,
   isOwner,
@@ -72,5 +74,5 @@ export async function handleRevealAction({
     return;
   }
 
-  await revealRound(snapshot.active_round.id);
+  await revealRound(snapshot.active_round.id); // Вызываем функцию для показа результатов раунда, передавая идентификатор текущего активного раунда.
 }

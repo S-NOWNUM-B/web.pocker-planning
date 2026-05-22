@@ -1,1 +1,1 @@
-export { AboutPage } from './ui/AboutPage';
+export { AboutPage } from './ui/AboutPage'; // Экспорт компонента страницы "О нас" из папки ui, который будет использоваться для отображения информации о проекте или компании.

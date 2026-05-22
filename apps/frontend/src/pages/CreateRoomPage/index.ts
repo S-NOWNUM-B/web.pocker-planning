@@ -1,1 +1,1 @@
-export { CreateRoomPage } from './ui/CreateRoomPage';
+export { CreateRoomPage } from './ui/CreateRoomPage'; // Экспорт компонента страницы создания комнаты из папки ui, который будет использоваться для отображения интерфейса создания новой комнаты для голосования.

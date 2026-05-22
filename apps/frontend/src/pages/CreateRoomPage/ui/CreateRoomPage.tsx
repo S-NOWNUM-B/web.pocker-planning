@@ -1,17 +1,4 @@
-/**
- * Страница создания комнаты.
- *
- * Содержит форму для быстрого старта сессии:
- *  - Название комнаты
- *  - Автоматическое имя создателя из текущего профиля
- *  - Выбор колоды (Фибоначчи или Чётная)
- *
- * После заполнения формы сохраняет GameSession в localStorage
- * и перенаправляет на /room/:roomId.
- *
- * Доступна без авторизации. Основной вход для неавторизованных пользователей.
- */
-import { useState } from 'react';
+import { useState } from 'react'; 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useSession } from '@/app/providers';
