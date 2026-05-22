@@ -45,6 +45,7 @@ export const LoginResponseSchema = z.object({
   token_type: z.literal('bearer'),
 });
 
+// Схема для валидации ответа от сервера при регистрации, которая включает данные пользователя и токен доступа
 export const RegisterResponseSchema = z.object({
   user: UserShema,
   access_token: z.string(),

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, Input, Button } from '@/shared/ui';
+import { useEffect, useMemo, useState } from 'react'; // Импортируем необходимые хуки из React
+import { Modal, Input, Button } from '@/shared/ui'; // Импортируем компоненты Modal, Input и Button из общего UI-кита
 
 const MAX_TITLE_LENGTH = 50;
 const MAX_DESCRIPTION_LENGTH = 500;
 
-type TaskModalMode = 'create' | 'view' | 'edit';
+type TaskModalMode = 'create' | 'view' | 'edit'; // Тип для режима отображения модального окна задачи, который может быть "создание", "просмотр" или "редактирование".
 
+// Тип для данных задачи, который используется в компоненте TaskModal для отображения и редактирования информации о задаче.
 type TaskModalTask = {
   id: string;
   title: string;
@@ -13,6 +14,7 @@ type TaskModalTask = {
   estimate: string | null;
 };
 
+// Интерфейс для пропсов компонента TaskModal, который отображает модальное окно для создания, просмотра или редактирования задачи. Он принимает пропсы для управления открытием, режимом, данными задачи, правами доступа, состоянием сохранения и функциями для обработки действий с задачей.
 interface TaskModalProps {
   isOpen: boolean;
   mode: TaskModalMode;
@@ -25,6 +27,7 @@ interface TaskModalProps {
   onRequestEdit?: () => void;
 }
 
+// Этот компонент отображает модальное окно для создания, просмотра или редактирования задачи. В режиме "просмотр" отображается информация о задаче, а в режимах "создание" и "редактирование" отображается форма для ввода названия и описания задачи с валидацией и счетчиками символов.
 export function TaskModal({
   isOpen,
   mode,
@@ -54,20 +57,21 @@ export function TaskModal({
     setDescription(task?.description ?? '');
   }, [isOpen, mode, task?.description, task?.title]);
 
-  const trimmedTitle = title.trim();
-  const isTitleValid = trimmedTitle.length > 0 && trimmedTitle.length <= MAX_TITLE_LENGTH;
-  const isDescriptionValid = description.length <= MAX_DESCRIPTION_LENGTH;
-  const isFormValid = isTitleValid && isDescriptionValid;
+  const trimmedTitle = title.trim(); // Удаляем пробелы в начале и конце названия задачи для более точной валидации
+  const isTitleValid = trimmedTitle.length > 0 && trimmedTitle.length <= MAX_TITLE_LENGTH; // Проверяем, что название задачи не пустое и не превышает максимальную длину, чтобы определить, является ли оно валидным для сохранения.
+  const isDescriptionValid = description.length <= MAX_DESCRIPTION_LENGTH; // Проверяем, что описание задачи не превышает максимальную длину, чтобы определить, является ли оно валидным для сохранения.
+  const isFormValid = isTitleValid && isDescriptionValid; // Флаг, который указывает, что форма для создания или редактирования задачи является валидной и может быть сохранена, если оба поля (название и описание) проходят валидацию по длине.
 
   const titleCounter = useMemo(
     () => `${title.length}/${MAX_TITLE_LENGTH}`,
     [title.length],
-  );
+  ); // С помощью хука useMemo создаем строку счетчика символов для названия задачи, которая обновляется только при изменении длины названия, чтобы оптимизировать производительность и избежать лишних вычислений при каждом рендере.
   const descriptionCounter = useMemo(
     () => `${description.length}/${MAX_DESCRIPTION_LENGTH}`,
     [description.length],
-  );
+  ); // С помощью хука useMemo создаем строку счетчика символов для описания задачи, которая обновляется только при изменении длины описания, чтобы оптимизировать производительность и избежать лишних вычислений при каждом рендере.
 
+  // Эта функция обрабатывает сохранение задачи при нажатии на кнопку "Сохранить" или при нажатии клавиши Enter. Она проверяет, что форма является валидной и не находится в процессе сохранения, а затем вызывает соответствующую функцию для создания или обновления задачи в зависимости от текущего режима.
   const handleSubmit = () => {
     if (!isFormValid || isSaving) {
       return;
@@ -83,6 +87,7 @@ export function TaskModal({
     }
   };
 
+  // Выбираем заголовок модального окна в зависимости от текущего режима: "Новая задача" для создания, "Редактировать задачу" для редактирования и "Описание задачи" для просмотра.
   const modalTitle =
     mode === 'create'
       ? 'Новая задача'

@@ -1,6 +1,7 @@
-import type { Task } from '@/shared/lib/poker';
-import type { RoomSnapshot } from '@/entities/room/model/types';
+import type { Task } from '@/shared/lib/poker'; // Импортируем тип Task для использования в функциях обработки действий с голосованием в комнате
+import type { RoomSnapshot } from '@/entities/room/model/types'; // Импортируем тип RoomSnapshot для использования в функциях обработки действий с голосованием в комнате
 
+// Интерфейс для параметров функции обработки действия "Следующая задача"
 interface HandleSelectCardActionParams {
   card: string;
   activeTask: Task | null;
@@ -11,6 +12,7 @@ interface HandleSelectCardActionParams {
   vote: (payload: { roundId: string; value: string }) => Promise<unknown>;
 }
 
+// Эта функция обрабатывает действие выбора карты для голосования. Она проверяет, что есть активная задача и что не происходит другой операции (isBusy), а затем в зависимости от наличия активного раунда и его статуса, либо запускает новый раунд и голосует, либо просто голосует в текущем раунде.
 export async function handleSelectCardAction({
   card,
   activeTask,
@@ -24,7 +26,7 @@ export async function handleSelectCardAction({
     return;
   }
 
-  const activeRound = snapshot.active_round;
+  const activeRound = snapshot.active_round; // Получаем текущий активный раунд из снимка комнаты для проверки его статуса и принятия решения о том, нужно ли запускать новый раунд или голосовать в существующем.
 
   if (!activeRound) {
     if (!isOwner) {

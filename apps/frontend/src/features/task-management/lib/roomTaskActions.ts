@@ -1,8 +1,9 @@
-import type { RoomSnapshot } from '@/entities/room/model/types';
+import type { RoomSnapshot } from '@/entities/room/model/types'; // Импортируем тип RoomSnapshot для использования в функциях обработки действий с задачами
 
 const MAX_TITLE_LENGTH = 50;
 const MAX_DESCRIPTION_LENGTH = 500;
 
+// Интерфейс для параметров функции обработки действия "Следующая задача"
 interface HandleNextTaskActionParams {
   snapshot: RoomSnapshot;
   isOwner: boolean;
@@ -11,6 +12,7 @@ interface HandleNextTaskActionParams {
   selectTask: (taskId: string) => Promise<unknown>;
 }
 
+// Эта функция проверяет, может ли владелец комнаты перейти к следующей задаче, и если да, то завершает текущий раунд и выбирает следующую задачу из списка задач, которая еще не была оценена.
 export async function handleNextTaskAction({
   snapshot,
   isOwner,
@@ -22,11 +24,12 @@ export async function handleNextTaskAction({
     return;
   }
 
-  const roundId = snapshot.active_round.id;
-  const resultValue = snapshot.active_round.suggested_result ?? undefined;
+  const roundId = snapshot.active_round.id; // Получаем ID текущего раунда из снимка комнаты
+  const resultValue = snapshot.active_round.suggested_result ?? undefined; // Получаем предлагаемое значение оценки из текущего раунда, если оно есть, иначе undefined
 
-  await finalizeRound({ roundId, resultValue });
+  await finalizeRound({ roundId, resultValue }); // Завершаем текущий раунд, передавая ID раунда и предлагаемое значение оценки (если есть)
 
+  // Находим следующую задачу, которая не является текущей активной задачей и еще не была оценена (estimate_value === null), сортируя задачи по их позиции в списке.
   const nextTask = snapshot.tasks
     .filter((task) => task.id !== snapshot.active_round?.task_id && task.estimate_value === null)
     .sort((a, b) => a.position - b.position)[0];
@@ -36,6 +39,7 @@ export async function handleNextTaskAction({
   }
 }
 
+// Интерфейс для параметров функции обработки действия "Добавить задачу"
 interface HandleAddTaskActionParams {
   title: string;
   description: string;
@@ -45,6 +49,7 @@ interface HandleAddTaskActionParams {
   createTask: (payload: { title: string; description: string }) => Promise<unknown>;
 }
 
+// Эта функция проверяет, может ли владелец комнаты добавить новую задачу, и если да, то создает новую задачу с указанным заголовком и описанием.
 export async function handleAddTaskAction({
   title,
   description,
@@ -70,6 +75,7 @@ export async function handleAddTaskAction({
   return true;
 }
 
+// Интерфейс для параметров функции обработки действия "Выбрать задачу"
 interface HandleSelectTaskActionParams {
   taskId: string;
   snapshot: RoomSnapshot;
@@ -78,6 +84,7 @@ interface HandleSelectTaskActionParams {
   selectTask: (id: string) => Promise<unknown>;
 }
 
+// Эта функция проверяет, может ли владелец комнаты выбрать задачу, и если да, то выбирает указанную задачу для оценки.
 export async function handleSelectTaskAction({
   taskId,
   snapshot,
@@ -92,6 +99,7 @@ export async function handleSelectTaskAction({
   await selectTask(taskId);
 }
 
+// Интерфейс для параметров функции обработки действия "Обновить задачу"
 interface HandleUpdateTaskActionParams {
   taskId: string;
   title: string;
@@ -101,6 +109,7 @@ interface HandleUpdateTaskActionParams {
   updateTask: (payload: { taskId: string; title: string; description: string }) => Promise<unknown>;
 }
 
+// Эта функция проверяет, может ли владелец комнаты обновить задачу, и если да, то обновляет заголовок и описание указанной задачи.
 export async function handleUpdateTaskAction({
   taskId,
   title,
@@ -125,6 +134,7 @@ export async function handleUpdateTaskAction({
   return true;
 }
 
+// Интерфейс для параметров функции обработки действия "Удалить задачу"
 interface HandleDeleteTaskActionParams {
   taskId: string;
   isOwner: boolean;
@@ -132,6 +142,7 @@ interface HandleDeleteTaskActionParams {
   deleteTask: (taskId: string) => Promise<unknown>;
 }
 
+// Эта функция проверяет, может ли владелец комнаты удалить задачу, и если да, то удаляет указанную задачу.
 export async function handleDeleteTaskAction({
   taskId,
   isOwner,

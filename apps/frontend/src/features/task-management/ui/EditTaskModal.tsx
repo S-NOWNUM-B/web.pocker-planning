@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Modal, Input, Button } from '@/shared/ui';
+import { useState, useEffect } from 'react'; // Импортируем необходимые хуки из React
+import { Modal, Input, Button } from '@/shared/ui'; // Импортируем компоненты Modal, Input и Button из общего UI-кита
 
+// Интерфейс для пропсов компонента EditTaskModal
 interface EditTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,6 +10,7 @@ interface EditTaskModalProps {
   isSaving: boolean;
 }
 
+// Этот компонент отображает модальное окно для редактирования названия задачи. Он принимает пропсы для управления открытием, закрытием, сохранением и начальным названием задачи.
 export function EditTaskModal({
   isOpen,
   onClose,
