@@ -18,10 +18,11 @@ export function persistRoomSession({
 }: PersistRoomSessionParams): void {
   const selfParticipant = snapshot.self_participant_id
     ? snapshot.participants.find((participant) => participant.id === snapshot.self_participant_id)
-    : null;
-  const userName = authUserName || selfParticipant?.name || localUserName || 'Гость';
-  const isOwner = selfParticipant?.role === 'owner';
+    : null; // Находим информацию о текущем участнике (selfParticipant) в списке участников комнаты, используя идентификатор self_participant_id из снимка комнаты. Если идентификатор существует, мы ищем соответствующего участника в массиве participants. Если идентификатор не существует, selfParticipant будет null.
+  const userName = authUserName || selfParticipant?.name || localUserName || 'Гость'; // Определяем имя пользователя (userName) для сессии. Приоритет отдается имени из аутентификации (authUserName), затем имени участника из снимка комнаты (selfParticipant?.name), затем локальному имени пользователя (localUserName). Если ни одно из этих имен не доступно, используется значение по умолчанию 'Гость'.
+  const isOwner = selfParticipant?.role === 'owner'; // Проверяем, является ли текущий участник владельцем комнаты, сравнивая его роль с 'owner'. Результат сохраняется в переменной isOwner, которая используется для определения имени владельца комнаты в объекте сессии.
 
+  // Создаем объект сессии (session) типа GameSession, который содержит информацию о комнате (roomId, roomName), пользователе (userName), владельце комнаты (ownerId, ownerName), типе колоды карт (deckType), токене доступа к комнате (roomAccessToken) и идентификаторе текущего участника (selfParticipantId). Этот объект будет сохранен в localStorage для последующего восстановления сессии.
   const session: GameSession = {
     roomId: snapshot.room.slug,
     roomName: snapshot.room.name,
@@ -33,5 +34,5 @@ export function persistRoomSession({
     selfParticipantId: snapshot.self_participant_id,
   };
 
-  window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session)); // Сериализуем объект сессии в JSON и сохраняем его в localStorage под ключом SESSION_STORAGE_KEY. Это позволяет сохранять состояние пользователя и комнаты между сессиями браузера, обеспечивая более плавный пользовательский опыт при повторном посещении комнаты.
 }
