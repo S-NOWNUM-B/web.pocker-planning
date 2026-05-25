@@ -1,8 +1,3 @@
-/**
- * Универсальная кнопка с поддержкой полиморфизма (проп as).
- *
- * Поддерживает несколько вариантов оформления и 3 размера.
- */
 import { Button as HeadlessButton } from '@headlessui/react';
 import { type ElementType, type ComponentPropsWithoutRef } from 'react';
 
