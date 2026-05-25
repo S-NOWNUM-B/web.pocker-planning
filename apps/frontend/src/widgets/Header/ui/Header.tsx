@@ -1,10 +1,11 @@
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Link, useMatch } from 'react-router-dom';
-import { useTheme } from '@/shared/lib/hooks';
-import { Switch } from '@/shared/ui';
-import { LogOutIcon, MoonIcon, SunIcon, TrophyIcon, UsersIcon } from '@/shared/ui/icons';
-import { baseButtonClasses, sizeClasses, variantClasses } from '@/shared/ui/Button/Button';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'; // Импортируем компоненты для создания выпадающего меню из библиотеки headlessui
+import { Link, useMatch } from 'react-router-dom'; // Импортируем необходимые компоненты и хуки из react-router-dom
+import { useTheme } from '@/shared/lib/hooks'; // Импортируем хук для управления темой из общего набора хуков
+import { Switch } from '@/shared/ui'; // Импортируем компонент Switch для переключения темы из общего набора UI-компонентов
+import { LogOutIcon, MoonIcon, SunIcon, TrophyIcon, UsersIcon } from '@/shared/ui/icons'; // Импортируем необходимые иконки из общего набора UI-иконок
+import { baseButtonClasses, sizeClasses, variantClasses } from '@/shared/ui/Button/Button'; // Импортируем классы для кнопок из компонента Button для использования в стилях кнопок в Header
 
+// Интерфейс для пропсов компонента Header, который описывает типы для отображения кнопок авторизации, меню профиля и функции выхода из аккаунта
 interface HeaderProps {
   showAuthButtons?: boolean;
   showLoginButton?: boolean;
@@ -14,6 +15,7 @@ interface HeaderProps {
   onLogout?: () => void;
 }
 
+// Компонент Header, который отображает верхнюю панель с логотипом, кнопками авторизации, переключателем темы и меню профиля. Компонент адаптируется в зависимости от текущего маршрута и пропсов, скрываясь на странице комнаты и отображая соответствующие элементы управления в зависимости от переданных пропсов
 export function Header({
   showAuthButtons = false,
   showLoginButton,

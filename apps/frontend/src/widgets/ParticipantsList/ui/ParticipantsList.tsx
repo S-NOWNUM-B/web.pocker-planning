@@ -1,22 +1,8 @@
-/**
- * Список участников игровой комнаты.
- *
- * Отображает горизонтальный скроллящийся список карточек игроков.
- * Для каждого участника показывает:
- *  - Аватар с первой буквой имени
- *  - Имя и роль (если есть)
- *  - Статус голосования: «...» (вопрос выбран и голос ещё не отдан),
- *    «✓» (проголосовал, скрыто), значение карты (если раскрыто)
- *
- * @param players — массив игроков
- * @param hasActiveTask — выбрана ли сейчас задача для оценки
- * @param isRevealed — раскрыты ли результаты
- * @param className — дополнительный CSS-класс
- */
-import { CheckIcon, CoffeeIcon, HelpCircleIcon, TargetIcon } from '@/shared/ui/icons';
-import { cn } from '@/shared/lib';
-import type { Player } from '@/shared/lib/poker';
+import { CheckIcon, CoffeeIcon, HelpCircleIcon, TargetIcon } from '@/shared/ui/icons'; // Импорт иконок из библиотеки иконок
+import { cn } from '@/shared/lib'; // Импорт функции для объединения классов (например, clsx или classnames)
+import type { Player } from '@/shared/lib/poker'; // Импорт типа Player, который описывает структуру данных игрока
 
+// Интерфейс для пропсов компонента ParticipantsList
 interface ParticipantsListProps {
   players: Player[];
   hasActiveTask: boolean;
@@ -24,6 +10,7 @@ interface ParticipantsListProps {
   className?: string;
 }
 
+// Компонент для отображения списка участников с их голосами и статусами
 export function ParticipantsList({
   players,
   hasActiveTask,
@@ -34,6 +21,7 @@ export function ParticipantsList({
     return null;
   }
 
+  // Функция для отображения видимого голоса в зависимости от его значения
   const renderVisibleVote = (value: string) => {
     if (value === '☕' || value === 'break') {
       return (
@@ -74,7 +62,7 @@ export function ParticipantsList({
               <div
                 key={player.id}
                 className={cn(
-                  'group relative flex min-w-[140px] items-center gap-3 rounded-2xl border bg-card/30 p-2 backdrop-blur-sm transition-all duration-300',
+                  'group relative flex min-w-140px items-center gap-3 rounded-2xl border bg-card/30 p-2 backdrop-blur-sm transition-all duration-300',
                   hasVote && !voteIsVisible
                     ? 'border-primary/30 ring-1 ring-primary/10'
                     : 'border-border/50',
@@ -85,7 +73,7 @@ export function ParticipantsList({
                   <div className="absolute inset-0 rounded-2xl bg-primary/5 blur-md pointer-events-none" />
                 )}
 
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-foreground/20 text-[10px] font-bold text-primary-foreground shadow-sm transition-transform">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-primary-foreground/20 text-[10px] font-bold text-primary-foreground shadow-sm transition-transform">
                   {player.name.slice(0, 1).toUpperCase()}
                 </div>
 

@@ -1,30 +1,10 @@
-/**
- * Боковая панель задач в игровой комнате.
- *
- * Левая колонка RoomPage (на десктопе). Содержит:
- *  - Фильтрацию задач (Все, Активные, Завершенные)
- *  - Список задач
- *  - Счётчик оценённых/всего задач
- *  - Кнопку создания задачи
- *
- * При клике на задачу — она становится активной для голосования.
- * Оценённые задачи визуально отличаются (приглушённый цвет + бейдж SP).
- *
- * @param tasks — массив задач
- * @param activeTaskId — ID текущей активной задачи
- * @param isRevealed — раскрыты ли результаты (блокирует переключение)
- * @param newTaskTitle — значение поля ввода новой задачи
- * @param onNewTaskTitleChange — обработчик изменения поля
- * @param onAddTask — добавление задачи (Enter или кнопка)
- * @param onSelectTask — выбор активной задачи
- * @param className — дополнительный CSS-класс
- */
-import { useState, useMemo } from 'react';
-import { Button } from '@/shared/ui';
-import { EditIcon, TrashIcon } from '@/shared/ui/icons';
-import { cn } from '@/shared/lib';
-import type { Task } from '@/shared/lib/poker';
+import { useState, useMemo } from 'react'; // Импорт хуков useState и useMemo для управления состоянием и оптимизации вычислений в компоненте
+import { Button } from '@/shared/ui'; // Импорт компонента Button из общей библиотеки UI компонентов
+import { EditIcon, TrashIcon } from '@/shared/ui/icons'; // Импорт иконок EditIcon и TrashIcon для отображения кнопок редактирования и удаления задач
+import { cn } from '@/shared/lib'; // Импорт функции cn для удобного объединения классов CSS
+import type { Task } from '@/shared/lib/poker'; // Импорт типа Task, который описывает структуру данных задачи в приложении
 
+// Интерфейс для пропсов компонента TaskSidebar, который описывает все необходимые данные и функции для отображения и управления списком задач в боковой панели комнаты
 interface TaskSidebarProps {
   tasks: Task[];
   activeTaskId: string | null;
@@ -38,8 +18,9 @@ interface TaskSidebarProps {
   className?: string;
 }
 
-type TaskFilter = 'all' | 'active' | 'completed';
+type TaskFilter = 'all' | 'active' | 'completed'; // Тип для фильтра задач, который может принимать значения 'all' (все задачи), 'active' (только активные задачи) или 'completed' (только завершённые задачи)
 
+// Компонент для отображения боковой панели задач в комнате, который позволяет пользователям видеть список задач, фильтровать их по статусу, открывать модальные окна для создания и редактирования задач, а также удалять задачи (для владельца комнаты)
 export function TaskSidebar({
   tasks,
   activeTaskId,
@@ -52,8 +33,9 @@ export function TaskSidebar({
   isOwner,
   className,
 }: TaskSidebarProps) {
-  const [filter, setFilter] = useState<TaskFilter>('all');
+  const [filter, setFilter] = useState<TaskFilter>('all'); // Состояние для хранения текущего фильтра задач, по умолчанию установлен в 'all' для отображения всех задач
 
+  // Вычисление отфильтрованного списка задач на основе выбранного фильтра и активной задачи, с помощью useMemo для оптимизации, чтобы не пересчитывать список при каждом рендере, а только при изменении задач, фильтра или активной задачи
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       if (filter === 'active') return task.id === activeTaskId;

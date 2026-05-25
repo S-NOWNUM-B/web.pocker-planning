@@ -1,25 +1,10 @@
-/**
- * Шапка игровой комнаты.
- *
- * Верхняя панель RoomPage. Содержит:
- *  - Название комнаты и ID
- *  - Бейдж выбранной колоды
- *  - Кнопку копирования ссылки для приглашения
- *  - Кнопку выхода из комнаты
- *  - Переключатель темы
- *
- * Прикрепляется к верху экрана (sticky).
- *
- * @param roomName — название комнаты
- * @param roomId — ID комнаты
- * @param deckName — название колоды
- */
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '@/shared/lib/hooks';
-import { Button, Switch } from '@/shared/ui';
-import { LinkIcon, LogOutIcon, MoonIcon, SunIcon, TrophyIcon } from '@/shared/ui/icons';
+import { useState } from 'react'; // Импорт хука useState для управления состоянием компонента
+import { Link, useNavigate } from 'react-router-dom'; // Импорт компонентов Link и useNavigate из библиотеки react-router-dom для навигации между страницами
+import { useTheme } from '@/shared/lib/hooks'; // Импорт пользовательского хука useTheme для управления темой приложения
+import { Button, Switch } from '@/shared/ui'; // Импорт компонентов Button и Switch из библиотеки UI компонентов
+import { LinkIcon, LogOutIcon, MoonIcon, SunIcon, TrophyIcon } from '@/shared/ui/icons'; // Импорт иконок из библиотеки иконок
 
+// Интерфейс для пропсов компонента RoomHeader
 interface RoomHeaderProps {
   roomName: string;
   roomId: string;
@@ -27,11 +12,13 @@ interface RoomHeaderProps {
   inviteLink?: string | null;
 }
 
+// Компонент для отображения верхней части комнаты, включая название, идентификатор, колоду и кнопки для приглашения, выхода и переключения темы
 export function RoomHeader({ roomName, roomId, deckName, inviteLink }: RoomHeaderProps) {
-  const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
-  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
+  const navigate = useNavigate(); // Хук для программной навигации между страницами
+  const { theme, setTheme } = useTheme(); // Хук для получения текущей темы и функции для её изменения
+  const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle'); // Состояние для управления состоянием кнопки копирования ссылки (по умолчанию 'idle')
 
+  // Функция для копирования ссылки на комнату в буфер обмена и изменения состояния кнопки на 'copied' на короткое время
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(inviteLink || window.location.href);
@@ -42,6 +29,7 @@ export function RoomHeader({ roomName, roomId, deckName, inviteLink }: RoomHeade
     }
   };
 
+  // Функция для выхода из комнаты и перехода на страницу дашборда
   const handleExitRoom = () => {
     navigate('/dashboard');
   };

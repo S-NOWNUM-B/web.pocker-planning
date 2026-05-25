@@ -1,27 +1,10 @@
-/**
- * Область результатов голосования в игровой комнате.
- *
- * Центральная зона RoomPage. Показывает:
- *  - Название активной задачи
- *  - Топ-3 голосуемых значений с количеством голосов
- *  - До раскрытия: кнопку «Вскрыть карты» и подсказку о состоянии голосования
- *  - После раскрытия: финальную оценку крупным шрифтом + кнопку «Следующая задача»
- *
- * @param activeTaskTitle — название текущей задачи
- * @param snapshot — снимок комнаты с голосами
- * @param isRevealed — раскрыты ли результаты
- * @param allPlayersVoted — все ли проголосовали
- * @param anyPlayerVoted — есть ли хоть один голос
- * @param onReveal — раскрытие результатов
- * @param onNextTask — переход к следующей задаче
- * @param className — дополнительный CSS-класс
- */
-import { useState, useEffect, useMemo } from 'react';
-import { Button, Modal } from '@/shared/ui';
-import { cn } from '@/shared/lib';
-import { CheckIcon } from '@/shared/ui/icons';
-import type { RoomSnapshot } from '@/entities/room/model/types';
+import { useState, useEffect, useMemo } from 'react'; // Импорт хуков useState, useEffect и useMemo для управления состоянием и оптимизации вычислений в компоненте
+import { Button, Modal } from '@/shared/ui'; // Импорт компонентов Button и Modal из библиотеки UI компонентов
+import { cn } from '@/shared/lib'; // Импорт функции cn для условного объединения классов
+import { CheckIcon } from '@/shared/ui/icons'; // Импорт иконки CheckIcon для отображения на кнопке подтверждения оценки
+import type { RoomSnapshot } from '@/entities/room/model/types'; // Импорт типа RoomSnapshot, который описывает структуру данных снимка комнаты
 
+// Интерфейс для пропсов компонента RoomResults, который описывает все необходимые данные и функции для отображения результатов голосования в комнате
 interface RoomResultsProps {
   activeTaskTitle: string | null;
   cards: string[];
@@ -37,36 +20,39 @@ interface RoomResultsProps {
   className?: string;
 }
 
+// Вспомогательный интерфейс для статистики голосов, который содержит значение голоса и количество таких голосов
 interface VoteStat {
   value: string;
   count: number;
 }
 
+// Функция для получения статистики топовых голосов из снимка комнаты и списка карточек, которая возвращает массив объектов с значением голоса и количеством таких голосов, отсортированных по популярности и порядку в колоде
 function getTopVoteStats(snapshot: RoomSnapshot, cards: string[]): VoteStat[] {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, number>(); // Создание карты для подсчёта количества голосов для каждого значения
 
   for (const vote of snapshot.active_round?.votes ?? []) {
     if (!vote.value) continue;
     counts.set(vote.value, (counts.get(vote.value) ?? 0) + 1);
   }
 
-  const cardOrder = new Map(cards.map((card, index) => [card, index]));
+  const cardOrder = new Map(cards.map((card, index) => [card, index])); // Создание карты для определения порядка карточек в колоде, которая будет использоваться для сортировки голосов с одинаковой популярностью
 
   return [...counts.entries()]
     .sort((left, right) => {
-      const countDiff = right[1] - left[1];
-      if (countDiff !== 0) return countDiff;
+      const countDiff = right[1] - left[1]; // Сортировка по количеству голосов (от большего к меньшему)
+      if (countDiff !== 0) return countDiff; // Если количество голосов отличается, то сортируем по нему
 
-      const leftOrder = cardOrder.get(left[0]) ?? Number.POSITIVE_INFINITY;
-      const rightOrder = cardOrder.get(right[0]) ?? Number.POSITIVE_INFINITY;
-      if (leftOrder !== rightOrder) return leftOrder - rightOrder;
+      const leftOrder = cardOrder.get(left[0]) ?? Number.POSITIVE_INFINITY; // Получение порядка карточки для левого голоса, если его нет в колоде, то ставим его в конец
+      const rightOrder = cardOrder.get(right[0]) ?? Number.POSITIVE_INFINITY; // Получение порядка карточки для правого голоса, если его нет в колоде, то ставим его в конец
+      if (leftOrder !== rightOrder) return leftOrder - rightOrder; // Если порядок карточек отличается, то сортируем по нему (от меньшего к большему)
 
-      return left[0].localeCompare(right[0], 'ru');
+      return left[0].localeCompare(right[0], 'ru'); // Если количество голосов и порядок карточек одинаковый, то сортируем по значению голоса в алфавитном порядке с учётом русской локали
     })
     .slice(0, 3)
-    .map(([value, count]) => ({ value, count }));
+    .map(([value, count]) => ({ value, count })); // Ограничение до 3 топовых голосов и преобразование в массив объектов с полями value и count
 }
 
+// Функция для определения стиля карточки голоса в зависимости от её позиции в топе голосов (самый частый, средний или редкий)
 function getVoteCardTone(index: number) {
   if (index === 0) {
     return 'border-primary/40 bg-primary/10 text-primary shadow-lg shadow-primary/10';
@@ -79,6 +65,7 @@ function getVoteCardTone(index: number) {
   return 'border-border/50 bg-background/40 text-muted-foreground';
 }
 
+// Вспомогательная функция для правильного склонения слова "человек" в зависимости от количества голосов
 function formatVoteCount(count: number) {
   const lastDigit = count % 10;
   const lastTwoDigits = count % 100;
@@ -94,6 +81,7 @@ function formatVoteCount(count: number) {
   return 'человек';
 }
 
+// Компонент для отображения результатов голосования в комнате, который показывает активную задачу, топовые голоса, итоговую оценку и кнопки для действий владельца комнаты
 export function RoomResults({
   activeTaskTitle,
   cards,
@@ -108,12 +96,13 @@ export function RoomResults({
   snapshot,
   className,
 }: RoomResultsProps) {
-  const topVoteStats = useMemo(() => getTopVoteStats(snapshot, cards), [cards, snapshot]);
-  const [finalValue, setFinalValue] = useState(topVoteStats[0]?.value ?? cards[0] ?? '');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const topVoteStats = useMemo(() => getTopVoteStats(snapshot, cards), [cards, snapshot]); // Вычисление топовых голосов с помощью useMemo для оптимизации, чтобы не пересчитывать их при каждом рендере, а только при изменении колоды или снимка комнаты
+  const [finalValue, setFinalValue] = useState(topVoteStats[0]?.value ?? cards[0] ?? ''); // Состояние для хранения итоговой оценки, по умолчанию устанавливается в самое популярное значение голоса или первое значение из колоды, если голосов нет
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Состояние для управления открытием модального окна редактирования итоговой оценки
 
-  const hasActiveTask = Boolean(activeTaskTitle);
+  const hasActiveTask = Boolean(activeTaskTitle); // Логическое значение, указывающее, есть ли активная задача для оценки
 
+  // Эффект для обновления итоговой оценки при изменении колоды или топовых голосов, чтобы итоговая оценка всегда была актуальной и соответствовала текущим результатам голосования
   useEffect(() => {
     setFinalValue(topVoteStats[0]?.value ?? cards[0] ?? '');
   }, [cards, topVoteStats]);
@@ -292,7 +281,7 @@ export function RoomResults({
   );
 }
 
-// Вспомогательный компонент для выбора карты в модалке
+// Компонент для отображения модального окна редактирования итоговой оценки, который позволяет владельцу комнаты выбрать другое значение из колоды для финальной оценки задачи
 function EditResultModal({
   isOpen,
   onClose,
@@ -306,8 +295,9 @@ function EditResultModal({
   cards: string[];
   currentValue: string;
 }) {
-  const [selected, setSelected] = useState(currentValue);
+  const [selected, setSelected] = useState(currentValue); // Состояние для хранения выбранного значения в модальном окне, по умолчанию устанавливается в текущее итоговое значение
 
+  // Эффект для обновления выбранного значения при изменении текущего итогового значения, чтобы при открытии модального окна всегда отображалось актуальное значение
   useEffect(() => {
     setSelected(currentValue);
   }, [currentValue]);

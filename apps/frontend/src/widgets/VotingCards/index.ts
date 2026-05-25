@@ -1,1 +1,1 @@
-export { VotingCards } from './ui/VotingCards';
+export { VotingCards } from './ui/VotingCards'; // Экспорт компонента VotingCards из его файла реализации

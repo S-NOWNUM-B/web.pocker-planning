@@ -1,24 +1,8 @@
-/**
- * Набор SVG-иконок для интерфейса.
- *
- * Все иконки:
- *  - Размер 24×24 (viewBox)
- *  - stroke-width 1.8
- *  - round linecap/linejoin
- *  - aria-hidden="true"
- *
- * Экспортируемые иконки:
- *  SparklesIcon, MoonIcon, SunIcon, PlayIcon, TrophyIcon,
- *  UsersIcon, LinkIcon, LogOutIcon, TargetIcon, CheckIcon,
- *  CoffeeIcon, HelpCircleIcon, EyeIcon, RotateCcwIcon, PlusIcon,
- *  EditIcon, TrashIcon
- *
- * Принимают стандартные SVG-пропсы (className, style и т.д.).
- */
-import type { SVGProps, ReactNode } from 'react';
+import type { SVGProps, ReactNode } from 'react'; // Импортируем типы SVGProps и ReactNode из библиотеки React для описания пропсов и детей компонентов иконок
 
-type IconProps = SVGProps<SVGSVGElement>;
+type IconProps = SVGProps<SVGSVGElement>; // Определяем тип IconProps, который расширяет стандартные пропсы для SVG-элементов, чтобы использовать их в компонентах иконок
 
+// Компонент IconShell, который служит оболочкой для всех иконок, задавая общую структуру и стили для SVG-элементов
 function IconShell({ children, ...props }: IconProps & { children: ReactNode }) {
   return (
     <svg
@@ -36,6 +20,7 @@ function IconShell({ children, ...props }: IconProps & { children: ReactNode }) 
   );
 }
 
+// Ниже представлены компоненты различных иконок, которые используют IconShell для отображения SVG-графики. Каждая иконка принимает пропсы типа IconProps для настройки размера, цвета и других атрибутов SVG.
 export function SparklesIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -46,6 +31,7 @@ export function SparklesIcon(props: IconProps) {
   );
 }
 
+// Компоненты иконок для различных символов, таких как Луна, Солнце, Играть, Кубок, Пользователи, Ссылка, Выход, Цель, Галочка, Кофе, Вопросительный знак в круге, Глаз, Вращение против часовой стрелки, Плюс, Редактировать и Корзина. Каждая иконка использует SVG-пути для создания уникального изображения.
 export function MoonIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -54,6 +40,7 @@ export function MoonIcon(props: IconProps) {
   );
 }
 
+// Компонент SunIcon, который отображает иконку солнца с помощью SVG-элементов, таких как круг и линии для лучей. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function SunIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -63,6 +50,7 @@ export function SunIcon(props: IconProps) {
   );
 }
 
+// Компонент PlayIcon, который отображает иконку "Играть" в виде треугольника, указывающего вправо. Иконка использует SVG-путь для создания формы треугольника и наследует текущий цвет текста для заливки и обводки.
 export function PlayIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -71,6 +59,7 @@ export function PlayIcon(props: IconProps) {
   );
 }
 
+// Компонент TrophyIcon, который отображает иконку кубка с помощью SVG-путей для создания формы кубка и его деталей. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function TrophyIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -81,6 +70,7 @@ export function TrophyIcon(props: IconProps) {
   );
 }
 
+// Компонент UsersIcon, который отображает иконку пользователей с помощью SVG-путей для создания форм голов и тел двух человек. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function UsersIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -90,6 +80,7 @@ export function UsersIcon(props: IconProps) {
   );
 }
 
+// Компонент LinkIcon, который отображает иконку ссылки с помощью SVG-путей для создания форм звеньев цепи. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function LinkIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -99,6 +90,7 @@ export function LinkIcon(props: IconProps) {
   );
 }
 
+// Компонент LogOutIcon, который отображает иконку выхода с помощью SVG-путей для создания форм дверной ручки и стрелки, указывающей наружу. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function LogOutIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -109,6 +101,7 @@ export function LogOutIcon(props: IconProps) {
   );
 }
 
+// Компонент TargetIcon, который отображает иконку цели с помощью SVG-элементов, таких как круги для создания мишени. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function TargetIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -119,6 +112,7 @@ export function TargetIcon(props: IconProps) {
   );
 }
 
+// Компонент CheckIcon, который отображает иконку галочки с помощью SVG-пути для создания формы галочки. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function CheckIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -127,6 +121,7 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+// Компонент CoffeeIcon, который отображает иконку кофе с помощью SVG-путей для создания формы чашки и пара. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function CoffeeIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -137,6 +132,7 @@ export function CoffeeIcon(props: IconProps) {
   );
 }
 
+// Компонент HelpCircleIcon, который отображает иконку вопросительного знака в круге с помощью SVG-элементов, таких как круг для создания окружности и пути для создания формы вопросительного знака. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function HelpCircleIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -147,6 +143,7 @@ export function HelpCircleIcon(props: IconProps) {
   );
 }
 
+// Компонент EyeIcon, который отображает иконку глаза с помощью SVG-путей для создания формы глаза и зрачка. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function EyeIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -156,6 +153,7 @@ export function EyeIcon(props: IconProps) {
   );
 }
 
+// Компонент RotateCcwIcon, который отображает иконку вращения против часовой стрелки с помощью SVG-путей для создания формы стрелки, указывающей влево. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function RotateCcwIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -165,6 +163,7 @@ export function RotateCcwIcon(props: IconProps) {
   );
 }
 
+// Компонент PlusIcon, который отображает иконку плюса с помощью SVG-путей для создания формы плюса. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function PlusIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -173,6 +172,7 @@ export function PlusIcon(props: IconProps) {
   );
 }
 
+// Компонент EditIcon, который отображает иконку редактирования с помощью SVG-путей для создания формы карандаша. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям.
 export function EditIcon(props: IconProps) {
   return (
     <IconShell {...props}>
@@ -182,6 +182,7 @@ export function EditIcon(props: IconProps) {
   );
 }
 
+// Компонент TrashIcon, который отображает иконку корзины с помощью SVG-путей для создания формы мусорного бака и его деталей. Иконка использует текущий цвет текста для заливки и обводки, что позволяет ей адаптироваться к различным темам и стилям. 
 export function TrashIcon(props: IconProps) {
   return (
     <IconShell {...props}>

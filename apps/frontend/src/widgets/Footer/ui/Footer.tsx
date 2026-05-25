@@ -1,10 +1,6 @@
-/**
- * Подвал сайта.
- *
- * Отображается на всех страницах, кроме /room/:roomId.
- */
-import { Link, useMatch } from 'react-router-dom';
+import { Link, useMatch } from 'react-router-dom'; // Импортируем необходимые компоненты и хуки из react-router-dom
 
+// Компонент Footer, который отображается на всех страницах, кроме страницы комнаты
 export function Footer() {
   const isRoomPage = useMatch('/room/:roomId') !== null;
 
@@ -12,7 +8,7 @@ export function Footer() {
     return null;
   }
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear(); // Получаем текущий год для отображения в футере
 
   return (
     <footer className="border-t border-border/70 bg-card/70 backdrop-blur-xl">

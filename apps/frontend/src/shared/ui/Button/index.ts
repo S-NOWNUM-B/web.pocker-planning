@@ -1,5 +1,2 @@
-/**
- * Экспорт компонента Button — универсальная кнопка.
- */
-export { Button } from './Button';
-export type { ButtonProps } from './Button';
+export { Button } from './Button'; // Экспортируем компонент Button из файла Button.tsx, чтобы он был доступен для использования в других частях приложения
+export type { ButtonProps } from './Button'; // Экспортируем тип ButtonProps из файла Button.tsx, чтобы он был доступен для использования в других частях приложения, например, для типизации пропсов при использовании компонента Button

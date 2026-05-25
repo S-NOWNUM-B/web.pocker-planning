@@ -1,1 +1,1 @@
-export { RoomFooter } from './ui/RoomFooter';
+export { RoomFooter } from './ui/RoomFooter'; // Экспорт компонента RoomFooter из его файла реализации

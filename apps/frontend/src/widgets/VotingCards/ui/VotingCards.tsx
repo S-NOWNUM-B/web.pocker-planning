@@ -1,23 +1,8 @@
-/**
- * Панель выбора карт для голосования.
- *
- * Нижняя панель RoomPage. Отображает все карты выбранной колоды
- * в виде кнопок. Поддерживает:
- *  - Выбор карты (подсветка активного варианта)
- *  - Специальные карты: «?» (не знаю), «☕» (перерыв)
- *  - Блокировку при раскрытых результатах
- *
- * При клике вызывает onSelectCard(card) для отправки голоса.
- *
- * @param cards — массив значений карт (из DECKS)
- * @param selectedCard — выбранная карта (null если не выбрана)
- * @param disabled — заблокирована ли панель
- * @param onSelectCard — выбор карты
- */
-import { Button } from '@/shared/ui';
-import { cn } from '@/shared/lib';
-import { CheckIcon, CoffeeIcon, HelpCircleIcon, TrophyIcon } from '@/shared/ui/icons';
+import { Button } from '@/shared/ui'; // Импорт компонента Button из общей библиотеки пользовательского интерфейса для использования в карточках голосования
+import { cn } from '@/shared/lib'; // Импорт функции cn для удобного объединения классов CSS в зависимости от условий, используемой для стилизации карточек голосования
+import { CheckIcon, CoffeeIcon, HelpCircleIcon, TrophyIcon } from '@/shared/ui/icons'; // Импорт иконок из библиотеки иконок для отображения в карточках голосования и заголовке
 
+// Интерфейс для пропсов компонента VotingCards, который описывает ожидаемые свойства, такие как массив карт для голосования, выбранная карта, флаг отключения и функция для обработки выбора карты
 interface VotingCardsProps {
   cards: string[];
   selectedCard: string | null;
@@ -25,6 +10,7 @@ interface VotingCardsProps {
   onSelectCard: (card: string) => void;
 }
 
+// Компонент для отображения карточек голосования, который позволяет игрокам выбирать карту для голосования, отображает выбранную карту и может быть отключён в зависимости от состояния комнаты
 export function VotingCards({
   cards,
   selectedCard,

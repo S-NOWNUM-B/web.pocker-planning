@@ -1,18 +1,3 @@
-/**
- * Модальное окно на базе Headless UI Dialog.
- *
- * Обеспечивает:
- *  - Управление фокусом (Focus Trap)
- *  - Закрытие по нажатию Esc
- *  - Блокировку прокрутки body
- *  - Доступность для скринридеров
- *
- * @param isOpen — открыто ли модальное окно
- * @param onClose — обработчик закрытия
- * @param title — заголовок (опционально)
- * @param children — содержимое модального окна
- * @param className — дополнительный CSS-класс для контейнера контента
- */
 import {
   Button as HeadlessButton,
   Dialog,
@@ -20,9 +5,10 @@ import {
   DialogTitle,
   Transition,
   TransitionChild,
-} from '@headlessui/react';
-import { Fragment, type ReactNode } from 'react';
+} from '@headlessui/react'; // Импортируем компоненты Button, Dialog, DialogPanel, DialogTitle, Transition и TransitionChild из библиотеки Headless UI
+import { Fragment, type ReactNode } from 'react'; // Импортируем тип ReactNode и Fragment из React
 
+// Интерфейс для пропсов компонента Modal
 export interface ModalProps {
   children: ReactNode;
   isOpen: boolean;
@@ -31,6 +17,7 @@ export interface ModalProps {
   className?: string;
 }
 
+// Компонент Modal, который отображает модальное окно с анимацией и оверлеем
 export function Modal({ children, isOpen, onClose, title, className = '' }: ModalProps) {
   return (
     <Transition show={isOpen} as={Fragment}>

@@ -1,5 +1,6 @@
-import { Switch as HeadlessSwitch } from '@headlessui/react';
+import { Switch as HeadlessSwitch } from '@headlessui/react'; // Импортируем компонент Switch из библиотеки Headless UI
 
+// Интерфейс для пропсов компонента Switch, который описывает типы для состояния переключателя, функции изменения, метки и классов CSS
 export interface SwitchProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -7,6 +8,7 @@ export interface SwitchProps {
   className?: string;
 }
 
+// Компонент Switch, который отображает переключатель с меткой и обрабатывает изменение состояния
 export function Switch({ checked, onChange, label, className = '' }: SwitchProps) {
   return (
     <HeadlessSwitch

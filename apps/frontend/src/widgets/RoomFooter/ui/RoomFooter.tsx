@@ -1,7 +1,8 @@
-import { VotingCards } from '@/widgets/VotingCards';
-import { Button } from '@/shared/ui';
-import { CheckIcon } from '@/shared/ui/icons';
+import { VotingCards } from '@/widgets/VotingCards'; // Импорт компонента для отображения карточек голосования
+import { Button } from '@/shared/ui'; // Импорт компонента Button из библиотеки UI компонентов
+import { CheckIcon } from '@/shared/ui/icons'; // Импорт иконки CheckIcon для отображения на кнопке подтверждения голоса
 
+// Интерфейс для пропсов компонента RoomFooter
 interface RoomFooterProps {
   cards: string[];
   selectedCard: string | null;
@@ -11,6 +12,7 @@ interface RoomFooterProps {
   onConfirmVote?: () => void;
 }
 
+// Компонент для отображения нижней части комнаты, где игроки могут выбирать карточки и подтверждать свой голос
 export function RoomFooter({
   cards,
   selectedCard,

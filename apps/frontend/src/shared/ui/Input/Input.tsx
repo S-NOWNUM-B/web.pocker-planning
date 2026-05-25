@@ -1,21 +1,13 @@
-/**
- * Поле ввода с опциональной подписью и сообщением об ошибке.
- *
- * Обёртка над <input> с лейаутом: label → input → error.
- * Автоматически генерирует id из label, если не передан.
- *
- * @param label — подпись над полем
- * @param error — текст ошибки под полем
- * @param id — id элемента (генерируется из label если не указан)
- */
-import { Field, Input as HeadlessInput, Label } from '@headlessui/react';
-import { type InputHTMLAttributes, forwardRef } from 'react';
+import { Field, Input as HeadlessInput, Label } from '@headlessui/react'; // Импортируем компоненты Field, Input и Label из библиотеки Headless UI
+import { type InputHTMLAttributes, forwardRef } from 'react'; // Импортируем типы для HTML атрибутов и функцию forwardRef из React
 
+// Интерфейс для пропсов компонента Input, расширяющий HTML атрибуты для input
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
 }
 
+// Компонент Input, который принимает пропсы и возвращает JSX элемент
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className = '', label, error, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
@@ -39,4 +31,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = 'Input';
+Input.displayName = 'Input'; // Устанавливаем displayName для компонента Input, чтобы улучшить отладку и отображение в React DevTools

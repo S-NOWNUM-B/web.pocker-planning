@@ -4,16 +4,18 @@ import {
   Label,
   Radio,
   RadioGroup as HeadlessRadioGroup,
-} from '@headlessui/react';
+} from '@headlessui/react'; // Импортируем компоненты Description, Field, Label, Radio и RadioGroup из библиотеки Headless UI
 
-type Primitive = string | number;
+type Primitive = string | number; // Определяем тип Primitive, который может быть строкой или числом
 
+// Интерфейс для описания опции радио-группы, который включает значение, заголовок и необязательное описание
 export interface RadioOption<T extends Primitive = string> {
   value: T;
   title: string;
   description?: string;
 }
 
+// Интерфейс для пропсов компонента RadioGroup, который описывает типы для значения, функции изменения, массива опций, метки и классов CSS
 export interface RadioGroupProps<T extends Primitive = string> {
   value: T;
   onChange: (value: T) => void;
@@ -23,6 +25,7 @@ export interface RadioGroupProps<T extends Primitive = string> {
   columnsClassName?: string;
 }
 
+// Компонент RadioGroup, который отображает группу радио-кнопок с меткой и описанием для каждой опции
 export function RadioGroup<T extends Primitive = string>({
   value,
   onChange,

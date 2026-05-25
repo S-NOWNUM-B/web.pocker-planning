@@ -1,22 +1,6 @@
-/**
- * Компонент пустого состояния (empty state).
- *
- * Отображается когда нет данных для показа:
- *  - Иконка (опционально)
- *  - Заголовок
- *  - Описание (опционально)
- *  - Кнопка действия (опционально)
- *
- * Используется в NotFoundPage, пустых списках задач и т.д.
- *
- * @param icon — иконка над заголовком
- * @param title — заголовок
- * @param description — описание ситуации
- * @param actionLabel — текст кнопки действия
- * @param onAction — обработчик нажатия кнопки
- */
-import { Button } from '../Button';
+import { Button } from '../Button'; // Импортируем компонент Button из папки ui/Button
 
+// Интерфейс для пропсов компонента EmptyState
 export interface EmptyStateProps {
   icon?: React.ReactNode;
   title: string;
@@ -25,6 +9,7 @@ export interface EmptyStateProps {
   onAction?: () => void;
 }
 
+// Компонент EmptyState, который отображает состояние пустоты с иконкой, заголовком, описанием и кнопкой действия
 export function EmptyState({ icon, title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 text-center">

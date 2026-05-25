@@ -1,5 +1,6 @@
-import { type ReactNode } from 'react';
+import { type ReactNode } from 'react'; // Импортируем тип ReactNode из React, который используется для описания типа детей компонента
 
+// Объект, который сопоставляет значения maxWidth с соответствующими классами Tailwind CSS для ограничения максимальной ширины контейнера
 const maxWidthClass = {
   md: 'max-w-3xl',
   lg: 'max-w-5xl',
@@ -7,6 +8,7 @@ const maxWidthClass = {
   full: 'max-w-7xl',
 };
 
+// Интерфейс для пропсов компонента PageShell, который описывает типы для детей, максимальной ширины и классов CSS
 interface PageShellProps {
   children: ReactNode;
   maxWidth?: keyof typeof maxWidthClass;
@@ -14,6 +16,7 @@ interface PageShellProps {
   contentClassName?: string;
 }
 
+// Компонент PageShell, который оборачивает содержимое страницы и добавляет фоновую графику и ограничение ширины
 export function PageShell({
   children,
   maxWidth = 'full',
