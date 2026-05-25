@@ -1,8 +1,2 @@
-/**
- * Экспорт API-слоя.
- *
- * api — базовый axios-клиент с интерцепторами.
- * ApiError — типизированная ошибка API (statusCode, error, message).
- */
-export { api } from './client';
-export type { ApiError } from './client';
+export { api } from './client'; // Экспортируем экземпляр api, созданный в client.ts, для использования в других частях приложения для выполнения HTTP-запросов к API
+export type { ApiError } from './client'; // Экспортируем тип ApiError, определенный в client.ts, для использования в других частях приложения для типизации ошибок, возвращаемых API

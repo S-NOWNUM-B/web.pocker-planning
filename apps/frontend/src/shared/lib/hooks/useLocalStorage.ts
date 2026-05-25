@@ -1,18 +1,6 @@
-/**
- * Хук для реактивной работы с localStorage.
- *
- * Сохраняет и считывает значение из localStorage по ключу.
- * Поддерживает функциональное обновление (как useState).
- *
- * @example
- * const [theme, setTheme] = useLocalStorage('theme', 'light');
- *
- * @param key — ключ в localStorage
- * @param initialValue — значение по умолчанию
- * @returns [storedValue, setValue] — текущее значение и сеттер
- */
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react'; // Импортируем необходимые хуки из React: useState для управления состоянием и useCallback для мемоизации функции обновления значения в localStorage.
 
+// useLocalStorage — это пользовательский хук, который позволяет легко сохранять и получать данные из localStorage с автоматической сериализацией и десериализацией. Он принимает ключ для хранения данных и начальное значение, которое будет использоваться, если в localStorage нет данных по этому ключу.
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
@@ -23,6 +11,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
+  // setValue — это функция, которая обновляет значение в состоянии и сохраняет его в localStorage. Она принимает новое значение или функцию, которая получает текущее значение и возвращает новое. Функция обернута в useCallback для оптимизации производительности, чтобы она не пересоздавалась при каждом рендере, если ключ и текущее значение не изменились.
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
       try {

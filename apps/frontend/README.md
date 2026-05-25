@@ -36,19 +36,19 @@ Backend подключается как внешний Python-сервис по 
 
 <div align="center">
 
-|        **Категория**        |                **Технологии**                 | **Версия** |
-| :-------------------------: | :-------------------------------------------: | :--------: |
-|        Язык / Рантайм       |        React + TypeScript + Node.js           | 19 / 5.8   |
-|          Сборка             |              [Vite](vite.dev)                 |   6.2.0    |
-|         Роутинг             |      React Router (Framework Mode)            |   7.5.0    |
-|       Серверный кэш         |  [TanStack Query](https://tanstack.com)       |   5.68.0   |
-|       Валидация форм        |    [React Hook Form](https://react-hook-form.io) + [Zod](https://zod.dev)  | 7.50.0 / 3.22.4 |
-|      HTTP-клиент            |         [Axios](https://axios-http.com)       |   1.8.4    |
-|      Состояние клиента      |         [Zustand](https://github.com/pmndrs/zustand)           |   5.0.12   |
-|         UI Компоненты       |     [Headless UI](https://headlessui.dev)     |   2.2.10   |
-|          Стили              |      Tailwind CSS 4 + PostCSS              |   4.1.4    |
-|  Переиспользуемые типы      |           `@poker/shared`                     |    0.1.0   |
-|       Качество кода         |     ESLint + Prettier + Stylelint             |   latest   |
+|     **Категория**     |                             **Технологии**                             |   **Версия**    |
+| :-------------------: | :--------------------------------------------------------------------: | :-------------: |
+|    Язык / Рантайм     |                      React + TypeScript + Node.js                      |    19 / 5.8     |
+|        Сборка         |                            [Vite](vite.dev)                            |      6.2.0      |
+|        Роутинг        |                     React Router (Framework Mode)                      |      7.5.0      |
+|     Серверный кэш     |                 [TanStack Query](https://tanstack.com)                 |     5.68.0      |
+|    Валидация форм     | [React Hook Form](https://react-hook-form.io) + [Zod](https://zod.dev) | 7.50.0 / 3.22.4 |
+|      HTTP-клиент      |                    [Axios](https://axios-http.com)                     |      1.8.4      |
+|   Состояние клиента   |              [Zustand](https://github.com/pmndrs/zustand)              |     5.0.12      |
+|     UI Компоненты     |                 [Headless UI](https://headlessui.dev)                  |     2.2.10      |
+|         Стили         |                        Tailwind CSS 4 + PostCSS                        |      4.1.4      |
+| Переиспользуемые типы |                            `@poker/shared`                             |      0.1.0      |
+|     Качество кода     |                     ESLint + Prettier + Stylelint                      |     latest      |
 
 </div>
 

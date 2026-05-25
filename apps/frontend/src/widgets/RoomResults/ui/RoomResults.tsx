@@ -160,14 +160,18 @@ export function RoomResults({
                         )}
                       >
                         <div className="flex items-center justify-between text-[7px] font-semibold uppercase tracking-[0.18em] opacity-70">
-                          <span>{index === 0 ? 'Самый частый' : index === 1 ? 'Средний' : 'Редкий'}</span>
+                          <span>
+                            {index === 0 ? 'Самый частый' : index === 1 ? 'Средний' : 'Редкий'}
+                          </span>
                           <span>#{index + 1}</span>
                         </div>
                         <div className="mt-0.5 text-[1.1rem] font-black leading-none sm:text-[1.35rem]">
                           {item.value}
                         </div>
                         <div className="mt-1 flex items-center justify-center gap-1 text-[8px] font-medium opacity-80">
-                          <span className="rounded-full bg-current/10 px-1 py-0.5">{item.count}</span>
+                          <span className="rounded-full bg-current/10 px-1 py-0.5">
+                            {item.count}
+                          </span>
                           <span>{formatVoteCount(item.count)}</span>
                         </div>
                       </div>

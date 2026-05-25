@@ -1,6 +1,1 @@
-/**
- * Экспорт менеджера сессий.
- *
- * SessionManager — управление сессией пользователя.
- */
-export { SessionManager } from './SessionManager';
+export { SessionManager } from './SessionManager'; // Экспортируем класс SessionManager из файла SessionManager.ts, который отвечает за управление сессиями пользователей, включая создание, хранение и удаление сессий.

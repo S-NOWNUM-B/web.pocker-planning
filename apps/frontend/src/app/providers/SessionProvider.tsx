@@ -65,7 +65,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void syncSession();
 
-     // Подписка на изменения сессии, чтобы автоматически обновлять состояние при входе, выходе или изменении данных пользователя
+    // Подписка на изменения сессии, чтобы автоматически обновлять состояние при входе, выходе или изменении данных пользователя
     const handleSessionChange = (event: Event) => {
       const detail = (event as CustomEvent<{ user?: User | null }>).detail; // Извлечение данных пользователя из события изменения сессии, если они есть
 

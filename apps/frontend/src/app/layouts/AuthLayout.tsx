@@ -9,7 +9,6 @@ interface AuthLayoutProps {
 // Компонент AuthLayout, который используется для оформления страниц аутентификации (например, входа и регистрации)
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-
     // Используем компонент PageShell для создания оболочки страницы с определенными стилями и разметкой
     <PageShell
       maxWidth="md"

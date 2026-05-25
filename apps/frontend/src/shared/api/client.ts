@@ -1,18 +1,8 @@
-/**
- * Базовый HTTP-клиент на основе axios.
- *
- * Настройки:
- *  - baseURL берётся из VITE_API_URL (по умолчанию localhost:3000/api)
- *  - Заголовок Content-Type: application/json
- *  - Request interceptor: добавляет Authorization header с токеном
- *  - Response interceptor: преобразует ошибки axios в типизированный ApiError
- *
- * Используется во всех API-модулях (entities/api).
- */
-import axios from 'axios';
-import type { ApiError } from '@poker/shared';
-import { SessionManager } from '@/shared/lib/session';
+import axios from 'axios'; // Импортируем библиотеку axios для выполнения HTTP-запросов к API
+import type { ApiError } from '@poker/shared'; // Импортируем тип ApiError из общего пакета shared для использования в типизации ошибок, возвращаемых API
+import { SessionManager } from '@/shared/lib/session'; // Импортируем SessionManager из общего пакета shared для управления сессией пользователя, включая получение токена для авторизации при выполнении запросов к API
 
+// Создаем экземпляр axios с базовым URL, который может быть задан через переменную окружения VITE_API_URL или по умолчанию будет '/api/v1'. Также устанавливаем заголовок Content-Type для всех запросов как 'application/json'.
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   headers: {
@@ -20,7 +10,7 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor to add Authorization header
+// Request interceptor для добавления токена авторизации в заголовки каждого запроса, если токен доступен. Это позволяет API распознавать аутентифицированного пользователя при каждом запросе.
 api.interceptors.request.use((config) => {
   const token = SessionManager.getToken();
   if (token) {
@@ -29,7 +19,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor for error handling
+// Response interceptor для обработки ошибок, возвращаемых API. Если ответ содержит ошибку, мы формируем объект ApiError с соответствующими полями и отклоняем промис с этим объектом, что позволяет централизованно обрабатывать ошибки в приложении.
 api.interceptors.response.use(
   (response) => response,
   (error) => {

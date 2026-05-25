@@ -62,10 +62,7 @@ export function TaskModal({
   const isDescriptionValid = description.length <= MAX_DESCRIPTION_LENGTH; // Проверяем, что описание задачи не превышает максимальную длину, чтобы определить, является ли оно валидным для сохранения.
   const isFormValid = isTitleValid && isDescriptionValid; // Флаг, который указывает, что форма для создания или редактирования задачи является валидной и может быть сохранена, если оба поля (название и описание) проходят валидацию по длине.
 
-  const titleCounter = useMemo(
-    () => `${title.length}/${MAX_TITLE_LENGTH}`,
-    [title.length],
-  ); // С помощью хука useMemo создаем строку счетчика символов для названия задачи, которая обновляется только при изменении длины названия, чтобы оптимизировать производительность и избежать лишних вычислений при каждом рендере.
+  const titleCounter = useMemo(() => `${title.length}/${MAX_TITLE_LENGTH}`, [title.length]); // С помощью хука useMemo создаем строку счетчика символов для названия задачи, которая обновляется только при изменении длины названия, чтобы оптимизировать производительность и избежать лишних вычислений при каждом рендере.
   const descriptionCounter = useMemo(
     () => `${description.length}/${MAX_DESCRIPTION_LENGTH}`,
     [description.length],
@@ -123,9 +120,7 @@ export function TaskModal({
                 Описание
               </div>
               <div className="min-h-30 rounded-xl border border-border/60 bg-secondary/20 px-3 py-2 text-sm text-muted-foreground whitespace-pre-wrap">
-                {task?.description?.trim()
-                  ? task?.description
-                  : 'Описание отсутствует.'}
+                {task?.description?.trim() ? task?.description : 'Описание отсутствует.'}
               </div>
             </div>
           </div>
@@ -155,9 +150,7 @@ export function TaskModal({
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <span>Описание</span>
                 <span
-                  className={
-                    description.length > MAX_DESCRIPTION_LENGTH ? 'text-destructive' : ''
-                  }
+                  className={description.length > MAX_DESCRIPTION_LENGTH ? 'text-destructive' : ''}
                 >
                   {descriptionCounter}
                 </span>

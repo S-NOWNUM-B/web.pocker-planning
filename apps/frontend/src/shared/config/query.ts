@@ -1,19 +1,10 @@
-/**
- * Конфигурация TanStack Query (React Query).
- *
- * QueryClient с настройками по умолчанию:
- *  - staleTime: 5 минут — данные считаются свежими 5 минут
- *  - retry: 2 — повтор запроса при ошибке 2 раза
- *  - refetchOnWindowFocus: false — не обновлять при фокусе окна
- *
- * Используется в AppProviders для обёртки всего приложения.
- */
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query'; // Импортируем класс QueryClient из библиотеки TanStack Query, который используется для создания экземпляра клиента, управляющего состоянием и кэшированием данных при выполнении запросов к API в приложении.
 
+// Создаем экземпляр queryClient с настройками по умолчанию для всех запросов. Устанавливаем staleTime в 5 минут, что означает, что данные будут считаться свежими в течение этого времени и не будут повторно запрашиваться. Устанавливаем retry в 2, что позволяет повторить запрос до 2 раз в случае ошибки. Устанавливаем refetchOnWindowFocus в false, чтобы данные не перезапрашивались при каждом фокусе окна, что может улучшить производительность и уменьшить количество запросов к API при переключении между окнами.
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: 2,
       refetchOnWindowFocus: false,
     },

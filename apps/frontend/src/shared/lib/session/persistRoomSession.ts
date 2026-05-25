@@ -1,6 +1,7 @@
-import type { RoomSnapshot } from '@/entities/room/model/types';
-import { SESSION_STORAGE_KEY, type GameSession } from '@/shared/lib/poker';
+import type { RoomSnapshot } from '@/entities/room/model/types'; // Импортируем тип RoomSnapshot из модели комнаты, который описывает структуру данных, получаемых при загрузке комнаты, включая информацию о комнате, участниках, задачах и активных раундах.
+import { SESSION_STORAGE_KEY, type GameSession } from '@/shared/lib/poker'; // Импортируем константу SESSION_STORAGE_KEY, которая используется в качестве ключа для хранения данных сессии в localStorage, и тип GameSession, который описывает структуру данных сессии игры, включая информацию о комнате, пользователе и колоде карт.
 
+// Интерфейс PersistRoomSessionParams описывает параметры, необходимые для сохранения сессии комнаты. Он включает в себя снимок комнаты (snapshot), имя пользователя из аутентификации (authUserName), локальное имя пользователя (localUserName) и токен доступа к комнате (roomAccessToken). Эти данные используются для создания объекта сессии, который затем сохраняется в localStorage для последующего восстановления при повторном посещении комнаты.
 interface PersistRoomSessionParams {
   snapshot: RoomSnapshot;
   authUserName?: string;
@@ -8,6 +9,7 @@ interface PersistRoomSessionParams {
   roomAccessToken?: string;
 }
 
+// persistRoomSession — это функция, которая сохраняет данные сессии комнаты в localStorage. Она принимает объект с параметрами, извлекает необходимую информацию из снимка комнаты и формирует объект GameSession, который затем сериализуется в JSON и сохраняется в localStorage под ключом SESSION_STORAGE_KEY. Это позволяет сохранять состояние пользователя и комнаты между сессиями браузера, обеспечивая более плавный пользовательский опыт при повторном посещении комнаты.
 export function persistRoomSession({
   snapshot,
   authUserName,

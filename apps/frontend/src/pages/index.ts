@@ -1,10 +1,10 @@
-export { OnboardingPage } from './OnboardingPage';
-export { CreateRoomPage } from './CreateRoomPage';
-export { JoinRoomPage } from './JoinRoomPage';
-export { InvitePage } from './InvitePage';
-export { LoginPage } from './LoginPage';
-export { RegisterPage } from './RegisterPage';
-export { DashboardPage } from './DashboardPage';
-export { AboutPage } from './AboutPage';
-export { RoomPage } from './RoomPage';
-export { NotFoundPage } from './NotFoundPage';
+export { OnboardingPage } from './OnboardingPage'; // Экспортируем компонент OnboardingPage из его UI-слоя для использования в других частях приложения
+export { CreateRoomPage } from './CreateRoomPage'; // Экспортируем компонент CreateRoomPage из его UI-слоя для использования в других частях приложения
+export { JoinRoomPage } from './JoinRoomPage'; // Экспортируем компонент JoinRoomPage из его UI-слоя для использования в других частях приложения
+export { InvitePage } from './InvitePage'; // Экспортируем компонент InvitePage из его UI-слоя для использования в других частях приложения
+export { LoginPage } from './LoginPage'; // Экспортируем компонент LoginPage из его UI-слоя для использования в других частях приложения
+export { RegisterPage } from './RegisterPage'; // Экспортируем компонент RegisterPage из его UI-слоя для использования в других частях приложения
+export { DashboardPage } from './DashboardPage'; // Экспортируем компонент DashboardPage из его UI-слоя для использования в других частях приложения
+export { AboutPage } from './AboutPage'; // Экспортируем компонент AboutPage из его UI-слоя для использования в других частях приложения
+export { RoomPage } from './RoomPage'; // Экспортируем компонент RoomPage из его UI-слоя для использования в других частях приложения
+export { NotFoundPage } from './NotFoundPage'; // Экспортируем компонент NotFoundPage из его UI-слоя для использования в других частях приложения

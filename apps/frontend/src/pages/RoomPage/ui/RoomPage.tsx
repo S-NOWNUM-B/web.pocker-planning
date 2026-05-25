@@ -65,7 +65,7 @@ export function RoomPage() {
   // Подключаемся к WebSocket для получения обновлений в реальном времени для комнаты, используя идентификатор комнаты и токен доступа (если есть). Подключение выполняется только если пользователь авторизован или есть токен доступа к комнате, и если идентификатор комнаты определен.
   const authToken = user ? SessionManager.getToken() : roomAccessToken;
   useRoomWebSocket({
-    roomId: roomId || resolvedRoomRef, 
+    roomId: roomId || resolvedRoomRef,
     token: authToken || undefined,
     enabled: Boolean(user || roomAccessToken) && roomId !== undefined,
   });
@@ -185,8 +185,7 @@ export function RoomPage() {
           )
         : null);
   const isOwner =
-    selfParticipant?.role === 'owner' ||
-    (Boolean(user?.id) && snapshot.room.owner_id === user?.id); // Определяем, является ли текущий участник владельцем комнаты. Участник считается владельцем, если его роль 'owner' или если его user_id совпадает с owner_id комнаты (для авторизованных пользователей).
+    selfParticipant?.role === 'owner' || (Boolean(user?.id) && snapshot.room.owner_id === user?.id); // Определяем, является ли текущий участник владельцем комнаты. Участник считается владельцем, если его роль 'owner' или если его user_id совпадает с owner_id комнаты (для авторизованных пользователей).
   const currentUserName = user?.name || selfParticipant?.name || localSession?.userName || 'Гость'; // Получаем имя текущего пользователя для отображения. Сначала пытаемся использовать имя из объекта user, если он есть. Если нет, используем имя из selfParticipant, если он найден. Если и это не сработало, используем имя из локальной сессии. Если ничего не найдено, отображаем 'Гость'.
   const tasks = mapSnapshotTasks(snapshot); // Преобразуем задачи из данных комнаты в формат, удобный для отображения в интерфейсе, с помощью функции mapSnapshotTasks
   const players = mapSnapshotPlayers(snapshot); // Преобразуем участников из данных комнаты в формат, удобный для отображения в интерфейсе, с помощью функции mapSnapshotPlayers
@@ -322,17 +321,19 @@ export function RoomPage() {
       deleteTask: (id) => deleteTaskMutation.mutateAsync(id),
     });
 
-    if (success) {
-
+    if (!success) {
+      console.error('Delete task failed: action returned false');
     }
   };
 
+  // Обработчик для запроса редактирования задачи. Если в данный момент отображается задача в модальном окне, он переключает режим модального окна на 'edit', позволяя пользователю редактировать эту задачу.
   const handleRequestEdit = () => {
     if (taskModalTask) {
       setTaskModalMode('edit');
     }
   };
 
+  // Эффект для подключения к WebSocket и обработки входящих сообщений. Он устанавливает обработчики событий для получения сообщений, ошибок и закрытия соединения. При получении сообщения он обрабатывает его в зависимости от типа, обновляя данные комнаты и инвалидируя соответствующие запросы для обновления данных в интерфейсе.
   const handleFinalize = async (resultValue: string) => {
     if (!isOwner || !snapshot.active_round) return;
     await finalizeMutation.mutateAsync({
@@ -341,11 +342,11 @@ export function RoomPage() {
     });
   };
 
-  const isTaskModalOpen = taskModalMode !== null;
-  const resolvedTaskModalMode = taskModalMode ?? 'view';
-  const isTaskSaving = createTaskMutation.isPending || updateTaskMutation.isPending;
+  const isTaskModalOpen = taskModalMode !== null; // Флаг для определения, открыто ли модальное окно задач, на основе того, установлен ли режим модального окна (taskModalMode) в значение, отличное от null
+  const resolvedTaskModalMode = taskModalMode ?? 'view'; // Режим для передачи в компонент TaskModal. Если taskModalMode не установлен (null), по умолчанию используется 'view', что позволяет отображать модальное окно в режиме просмотра, если оно открыто без явного указания режима.
+  const isTaskSaving = createTaskMutation.isPending || updateTaskMutation.isPending; // Флаг для определения, выполняется ли в данный момент операция сохранения задачи (создание или обновление), на основе состояния мутаций createTaskMutation и updateTaskMutation
 
-  const footerInset = '14rem';
+  const footerInset = '14rem'; // Высота нижнего отступа для основного контента, чтобы он не перекрывался футером. Это значение соответствует высоте футера, плюс небольшой запас для комфортного отображения.
 
   return (
     <div

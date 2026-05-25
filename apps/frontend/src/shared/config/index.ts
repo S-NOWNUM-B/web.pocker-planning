@@ -1,6 +1,1 @@
-/**
- * Экспорт конфигурации приложения.
- *
- * queryClient — настроенный клиент TanStack Query.
- */
-export { queryClient } from './query';
+export { queryClient } from './query'; // Экспортируем экземпляр queryClient, созданный в query.ts, для использования в других частях приложения для управления состоянием и кэшированием данных при выполнении запросов к API с помощью React Query

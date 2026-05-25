@@ -114,15 +114,15 @@ apps/backend/app/
 
 <div align="center">
 
-| **Категория**  | **Frontend технология**    | **Backend технология**     | **Назначение**              |
-| :------------- | :------------------------- | :------------------------- | :-------------------------- |
-| HTTP-запросы   | Axios + TanStack Query     | FastAPI REST               | API запросы, кэширование    |
-| Реальное время | WebSocket (браузерный API) | FastAPI WebSocket endpoint | Голосование, синхронизация  |
-| Валидация      | Zod + React Hook Form      | Pydantic v2                | Формы, схемы данных         |
-| UI-компоненты  | Headless UI                | —                          | Доступные компоненты        |
-| Управление кэшем | Zustand                  | —                          | Клиентское состояние        |
-| База данных    | —                          | SQLAlchemy 2.0 + Alembic   | ORM, миграции PostgreSQL    |
-| Аутентификация | LocalStorage (JWT)         | PyJWT + pwdlib (argon2)    | Токены, хеширование паролей |
+| **Категория**    | **Frontend технология**    | **Backend технология**     | **Назначение**              |
+| :--------------- | :------------------------- | :------------------------- | :-------------------------- |
+| HTTP-запросы     | Axios + TanStack Query     | FastAPI REST               | API запросы, кэширование    |
+| Реальное время   | WebSocket (браузерный API) | FastAPI WebSocket endpoint | Голосование, синхронизация  |
+| Валидация        | Zod + React Hook Form      | Pydantic v2                | Формы, схемы данных         |
+| UI-компоненты    | Headless UI                | —                          | Доступные компоненты        |
+| Управление кэшем | Zustand                    | —                          | Клиентское состояние        |
+| База данных      | —                          | SQLAlchemy 2.0 + Alembic   | ORM, миграции PostgreSQL    |
+| Аутентификация   | LocalStorage (JWT)         | PyJWT + pwdlib (argon2)    | Токены, хеширование паролей |
 
 </div>
 

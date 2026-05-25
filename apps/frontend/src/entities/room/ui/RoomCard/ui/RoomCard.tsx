@@ -51,7 +51,6 @@ export function RoomCard({ room }: RoomCardProps) {
   const isOwner = user?.id === room.owner_id;
 
   return (
-
     // Карточка комнаты с информацией о ней и действиями для входа, просмотра результатов и удаления (для владельца)
     <Card className="flex flex-col border border-border/70 bg-card/90 p-5 shadow-lg transition-all hover:border-primary/50 hover:shadow-xl">
       <div className="flex flex-1 flex-col space-y-3">
