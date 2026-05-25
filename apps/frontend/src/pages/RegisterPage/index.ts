@@ -1,1 +1,1 @@
-export { RegisterPage } from './ui/RegisterPage';
+export { RegisterPage } from './ui/RegisterPage'; // Экспортируем компонент RegisterPage из его UI-слоя для использования в других частях приложения

@@ -1,13 +1,8 @@
-/**
- * Страница «404 — не найдено».
- *
- * Используется и как экран для несуществующего маршрута, и как общий
- * route-level error screen для ошибок роутера.
- */
-import { Link, isRouteErrorResponse, useRouteError } from 'react-router-dom';
-import { Button, Card, EmptyState, PageShell } from '@/shared/ui';
-import { useSession } from '@/app/providers';
+import { Link, isRouteErrorResponse, useRouteError } from 'react-router-dom'; // Импортируем Link для навигации между страницами, isRouteErrorResponse для проверки типа ошибки и useRouteError для получения информации об ошибке маршрута
+import { Button, Card, EmptyState, PageShell } from '@/shared/ui'; // Импортируем UI-компоненты для отображения страницы, карточки и состояния пустоты
+import { useSession } from '@/app/providers'; // Импортируем хук для получения информации о текущей сессии пользователя
 
+// Функция getErrorContent принимает объект ошибки и возвращает заголовок и описание для отображения на странице в зависимости от типа ошибки. Если ошибка является ответом маршрута, функция проверяет статус ошибки и возвращает соответствующий заголовок и описание. Если ошибка не является ответом маршрута, возвращается стандартное сообщение для 404 ошибки.
 function getErrorContent(error: unknown) {
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
@@ -36,6 +31,7 @@ function getErrorContent(error: unknown) {
   };
 }
 
+// Компонент NotFoundPage отображает страницу 404 ошибки. Он содержит заголовок, описание и кнопку для возврата на главную страницу. Этот компонент используется для предоставления пользователю интерфейса при попытке доступа к несуществующему маршруту.
 export function NotFoundPage() {
   const error = useRouteError();
   const { isAuthenticated } = useSession();

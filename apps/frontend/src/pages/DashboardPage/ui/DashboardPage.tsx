@@ -1,17 +1,9 @@
-/**
- * Дашборд пользователя — список всех комнат.
- *
- * Отображает:
- *  - Активные комнаты — где пользователь является участником.
- *  - Кнопки создания и присоединения к комнате.
- *
- * Данные загружаются через TanStack Query (GET /rooms).
- */
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { Button, PageShell, Spinner, EmptyState } from '@/shared/ui';
-import { RoomCard, roomApi } from '@/entities/room';
+import { Link } from 'react-router-dom'; // Импортируем Link для навигации между страницами
+import { useQuery } from '@tanstack/react-query'; // Импортируем useQuery для получения данных о комнатах
+import { Button, PageShell, Spinner, EmptyState } from '@/shared/ui'; // Импортируем UI-компоненты для отображения страницы
+import { RoomCard, roomApi } from '@/entities/room'; // Импортируем компонент RoomCard для отображения каждой комнаты и API для получения данных о комнатах
 
+// Компонент DashboardPage отображает список комнат, которыми управляет пользователь, и предоставляет возможность создать новую комнату или присоединиться к существующей.
 export function DashboardPage() {
   const {
     data: rooms,

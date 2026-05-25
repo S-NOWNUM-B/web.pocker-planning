@@ -1,14 +1,15 @@
-import { useState } from 'react'; 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { useSession } from '@/app/providers';
-import { loginAsGuest } from '@/entities/user';
-import type { ApiError } from '@/shared/api';
-import { Button, Card, Input, PageShell, RadioGroup } from '@/shared/ui';
-import { LinkIcon, PlayIcon, TrophyIcon, UsersIcon } from '@/shared/ui/icons';
-import { roomApi } from '@/entities/room';
-import { type DeckType, type GameSession, SESSION_STORAGE_KEY } from '@/shared/lib/poker';
+import { useState } from 'react'; // Импортируем хук useState из библиотеки React для управления состоянием внутри компонента CreateRoomPage.
+import { useMutation, useQueryClient } from '@tanstack/react-query'; // Импортируем хук useMutation для выполнения мутаций данных (например, создания комнаты) и useQueryClient для управления кэшированными данными и их обновления после успешной мутации.
+import { useNavigate } from 'react-router-dom'; // Импортируем хук useNavigate из библиотеки react-router-dom для программной навигации между страницами (например, переход к странице комнаты после её создания).
+import { useSession } from '@/app/providers'; // Импортируем хук useSession из провайдера приложения для доступа к информации о текущей сессии пользователя, такой как его имя и статус авторизации.
+import { loginAsGuest } from '@/entities/user'; // Импортируем функцию loginAsGuest из сущности пользователя для выполнения аутентификации гостя, если пользователь не авторизован, что позволяет ему создать комнату и участвовать в игре без необходимости регистрации.
+import type { ApiError } from '@/shared/api'; // Импортируем тип ApiError для типизации ошибок, которые могут возникать при взаимодействии с API, что позволяет более точно обрабатывать и отображать сообщения об ошибках пользователю.
+import { Button, Card, Input, PageShell, RadioGroup } from '@/shared/ui'; // Импортируем компоненты Button, Card, Input, PageShell и RadioGroup из общей библиотеки пользовательского интерфейса для использования в структуре и оформлении страницы создания комнаты, обеспечивая единый стиль и удобство взаимодействия для пользователей.
+import { LinkIcon, PlayIcon, TrophyIcon, UsersIcon } from '@/shared/ui/icons'; // Импортируем иконки LinkIcon, PlayIcon, TrophyIcon и UsersIcon из библиотеки иконок общего пользовательского интерфейса для визуального представления различных элементов и действий на странице создания комнаты, таких как начало игры, преимущества использования приложения и т.д.
+import { roomApi } from '@/entities/room'; // Импортируем объект roomApi из сущности комнаты для взаимодействия с API, связанным с комнатами, например, для создания новой комнаты, что позволяет компоненту CreateRoomPage отправлять запросы на сервер и обрабатывать ответы при создании комнаты.
+import { type DeckType, type GameSession, SESSION_STORAGE_KEY } from '@/shared/lib/poker'; // Импортируем типы DeckType и GameSession, а также константу SESSION_STORAGE_KEY из библиотеки, связанной с логикой покерной игры, для типизации данных, связанных с колодой карт и игровой сессией, а также для использования ключа при сохранении информации о сессии в локальном хранилище браузера.
 
+// DECK_INFO содержит информацию о доступных типах колод карт для игры, включая их названия и описания. Это позволяет пользователю выбрать подходящую колоду при создании комнаты, а также предоставляет информацию о том, какие карты входят в каждую колоду, что может быть полезно для понимания правил игры и выбора оптимальной колоды для конкретной команды или задачи.
 const DECK_INFO: Record<DeckType, { title: string; description: string }> = {
   fibonacci: {
     title: 'Фибоначчи',
@@ -20,6 +21,7 @@ const DECK_INFO: Record<DeckType, { title: string; description: string }> = {
   },
 };
 
+// Функция isApiError проверяет, является ли переданный объект ошибкой API, путем проверки наличия определенных свойств (statusCode, error и message) в объекте. Это позволяет компоненту CreateRoomPage более точно обрабатывать ошибки, возникающие при взаимодействии с сервером, и предоставлять пользователю соответствующие сообщения об ошибках в зависимости от типа ошибки.
 const isApiError = (error: unknown): error is ApiError => {
   return (
     typeof error === 'object' &&
@@ -30,8 +32,9 @@ const isApiError = (error: unknown): error is ApiError => {
   );
 };
 
-const hasCyrillic = (text: string): boolean => /[А-Яа-яЁё]/.test(text);
+const hasCyrillic = (text: string): boolean => /[А-Яа-яЁё]/.test(text); // Функция hasCyrillic проверяет, содержит ли переданная строка символы кириллицы, используя регулярное выражение. Это может быть полезно для определения, является ли сообщение об ошибке на русском языке, что позволяет компоненту CreateRoomPage отображать более релевантные и понятные сообщения об ошибках для русскоязычных пользователей.
 
+// Функция getRussianCreateRoomErrorMessage принимает объект ошибки и возвращает строку с сообщением об ошибке на русском языке, адаптированным для различных сценариев ошибок, таких как проблемы с сетью, недостаточные права доступа или ошибки сервера. Она использует функцию isApiError для определения типа ошибки и функцию hasCyrillic для проверки наличия кириллических символов в оригинальном сообщении об ошибке, чтобы обеспечить более релевантные и понятные сообщения для русскоязычных пользователей.
 const getRussianCreateRoomErrorMessage = (error: unknown): string => {
   const fallbackMessage = 'Не удалось создать комнату. Попробуйте ещё раз через несколько секунд.';
 
@@ -76,6 +79,7 @@ const getRussianCreateRoomErrorMessage = (error: unknown): string => {
   return fallbackMessage;
 };
 
+// Компонент CreateRoomPage представляет собой страницу, на которой пользователи могут создать новую комнату для игры в Planning Poker. Он включает в себя форму для ввода названия комнаты, выбора типа колоды карт и кнопку для начала игры. Компонент также обрабатывает логику создания комнаты, включая аутентификацию гостя при необходимости, взаимодействие с API для создания комнаты и обработку ошибок с отображением соответствующих сообщений пользователю.
 export function CreateRoomPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -101,6 +105,7 @@ export function CreateRoomPage() {
     }
   };
 
+  // Функция ensureRoomAccessToken проверяет, имеет ли текущий пользователь действующий токен доступа к комнате. Если пользователь уже авторизован, функция возвращает пустой объект. Если пользователь не авторизован, функция проверяет наличие существующей сессии в локальном хранилище и возвращает токен доступа и имя гостя, если они есть. Если сессия отсутствует или недействительна, функция пытается выполнить вход как гость с помощью функции loginAsGuest и возвращает полученный токен доступа и имя гостя. В случае ошибки при аутентификации гостя функция возвращает пустой объект, что позволяет продолжить процесс создания комнаты даже без токена доступа, если это возможно.
   const ensureRoomAccessToken = async (): Promise<{ token?: string; guestName?: string }> => {
     if (user) {
       return {};
@@ -121,6 +126,7 @@ export function CreateRoomPage() {
     }
   };
 
+  // Мутация createRoomMutation использует хук useMutation для выполнения асинхронной операции создания комнаты. В функции mutationFn происходит проверка и получение токена доступа для гостя при необходимости, а затем отправляется запрос на сервер для создания комнаты с указанным названием и типом колоды. При успешном создании комнаты в функции onSuccess формируется объект сессии GameSession, который сохраняется в локальном хранилище браузера, обновляет кэш данных о комнатах и выполняет навигацию к странице новой комнаты. В случае ошибки мутация позволяет компоненту отобразить соответствующее сообщение об ошибке пользователю.
   const createRoomMutation = useMutation({
     mutationFn: async () => {
       const roomAccess = await ensureRoomAccessToken();
@@ -145,6 +151,7 @@ export function CreateRoomPage() {
     },
   });
 
+  // Функция handleStart вызывается при нажатии на кнопку "Начать игру". Она проверяет, можно ли начать игру (например, валидно ли название комнаты и не выполняется ли уже запрос на создание комнаты). Если условия не выполняются, функция просто возвращается. Если условия выполняются, функция вызывает метод mutate мутации createRoomMutation для начала процесса создания комнаты, что в конечном итоге приведет к навигации пользователя в новую комнату при успешном создании или отображению сообщения об ошибке при неудаче.
   const handleStart = () => {
     if (!canStart || createRoomMutation.isPending) {
       return;
@@ -153,10 +160,10 @@ export function CreateRoomPage() {
     createRoomMutation.mutate();
   };
 
-  const mutationError = createRoomMutation.error;
+  const mutationError = createRoomMutation.error; // Получаем объект ошибки из мутации createRoomMutation, который может содержать информацию о том, что пошло не так при попытке создать комнату. Этот объект используется для определения, нужно ли отображать сообщение об ошибке пользователю, и для получения более подробной информации об ошибке, которая может быть полезна для отладки или предоставления пользователю более релевантного сообщения об ошибке.
   const createRoomErrorMessage = createRoomMutation.isError
     ? getRussianCreateRoomErrorMessage(mutationError)
-    : null;
+    : null; // Если мутация createRoomMutation находится в состоянии ошибки (isError равно true), то вызывается функция getRussianCreateRoomErrorMessage с объектом ошибки mutationError для получения соответствующего сообщения об ошибке на русском языке. Если мутация не находится в состоянии ошибки, переменная createRoomErrorMessage будет иметь значение null, что означает, что нет сообщения об ошибке для отображения пользователю.
 
   return (
     <PageShell

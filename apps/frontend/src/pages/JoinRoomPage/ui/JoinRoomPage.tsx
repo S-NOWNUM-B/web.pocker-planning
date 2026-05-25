@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
-import { JoinRoomForm } from '@/features';
-import { Card, PageShell, Button } from '@/shared/ui';
+import { Link } from 'react-router-dom'; // Импортируем Link для навигации между страницами
+import { JoinRoomForm } from '@/features'; // Импортируем компонент JoinRoomForm, который содержит форму для ввода кода комнаты и обработки процесса присоединения
+import { Card, PageShell, Button } from '@/shared/ui'; // Импортируем UI-компоненты для отображения страницы и карточки с формой
 
+// Компонент JoinRoomPage отображает страницу с формой для присоединения к комнате по коду. Он содержит заголовок, описание и форму для ввода кода комнаты. Также предоставляется ссылка для создания новой комнаты, если у пользователя нет кода.
 export function JoinRoomPage() {
   return (
     <PageShell
