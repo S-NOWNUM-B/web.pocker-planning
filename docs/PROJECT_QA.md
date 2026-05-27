@@ -3909,3 +3909,1267 @@ api.get('/rooms').then((response) => {
 Если совсем коротко:
 
 **В текущем проекте zustand по факту не задействован. Управление сессией и глобальным состоянием пользователя сделано через React Context и SessionManager.**
+
+---
+
+### 29. Как в проекте работает механизм "Гость" или авторизованный пользователь? В каких файлах это есть, как происходит это на frontend, а как на backend?
+
+В вашем проекте нет двух полностью разных систем доступа. На backend и **гость**, и **авторизованный пользователь** в итоге становятся обычным `User`, получают `JWT-токен` и дальше почти одинаково работают с комнатами. Разница только в том, **как именно создаётся пользователь и откуда берётся токен**.
+
+#### Общая идея
+
+- **Авторизованный пользователь**:
+  - регистрируется через `/auth/register` или входит через `/auth/login`;
+  - получает `access_token`;
+  - токен сохраняется на frontend;
+  - дальше все защищённые запросы идут с `Authorization: Bearer <token>`.
+
+- **Гость**:
+  - не проходит обычную регистрацию;
+  - frontend вызывает `/auth/guest`;
+  - backend создаёт временного пользователя с guest-email и случайным паролем;
+  - гость тоже получает `access_token`;
+  - дальше работает почти так же, как обычный пользователь.
+
+То есть в архитектурном смысле:
+
+- **гость = тоже пользователь в базе**;
+- **авторизованный пользователь = тоже пользователь в базе**;
+- доступ к комнатам проверяется не по типу "гость/не гость", а по **наличию валидного токена** и участию пользователя в комнате.
+
+#### Где это находится на frontend
+
+Основные файлы:
+
+- `apps/frontend/src/entities/user/api/authApi.ts`
+- `apps/frontend/src/shared/lib/session/SessionManager.ts`
+- `apps/frontend/src/app/providers/SessionProvider.tsx`
+- `apps/frontend/src/shared/api/client.ts`
+- `apps/frontend/src/app/router/loaders/authLoader.ts`
+- `apps/frontend/src/app/router/loaders/publicOnlyLoader.ts`
+- `apps/frontend/src/app/router/actions/loginAction.ts`
+- `apps/frontend/src/pages/CreateRoomPage/ui/CreateRoomPage.tsx`
+- `apps/frontend/src/features/join-room/ui/JoinRoomForm.tsx`
+- `apps/frontend/src/pages/InvitePage/ui/InvitePage.tsx`
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+- `apps/frontend/src/pages/RoomPage/lib/useRoomWebSocket.ts`
+- `apps/frontend/src/shared/lib/poker.ts`
+
+#### Как это работает на frontend
+
+##### 1. API-методы для входа
+
+Файл:
+
+- `apps/frontend/src/entities/user/api/authApi.ts`
+
+Здесь есть 4 ключевых запроса:
+
+- `login()` -> `POST /auth/login`
+- `register()` -> `POST /auth/register`
+- `getMe()` -> `GET /auth/me`
+- `loginAsGuest()` -> `POST /auth/guest`
+
+То есть frontend умеет отдельно:
+
+- входить обычным способом;
+- регистрировать пользователя;
+- получать текущего пользователя по токену;
+- создавать гостевую сессию.
+
+##### 2. Хранение токена
+
+Файл:
+
+- `apps/frontend/src/shared/lib/session/SessionManager.ts`
+
+`SessionManager`:
+
+- сохраняет `access_token` в `localStorage`;
+- читает токен;
+- удаляет токен при выходе;
+- рассылает событие `poker-planning:session-change`, чтобы интерфейс обновился.
+
+Это главный механизм обычной frontend-сессии.
+
+##### 3. Восстановление текущего пользователя
+
+Файл:
+
+- `apps/frontend/src/app/providers/SessionProvider.tsx`
+
+`SessionProvider` при старте приложения делает следующее:
+
+1. Берёт токен из `SessionManager`.
+2. Если токена нет -> считает пользователя неавторизованным.
+3. Если токен есть -> вызывает `getUser()` (`/auth/me`).
+4. Если backend подтверждает токен -> кладёт пользователя в `user`.
+5. Если токен битый или устарел -> удаляет его и сбрасывает сессию.
+
+Из-за этого frontend всегда знает:
+
+- есть ли текущий пользователь;
+- надо ли пускать его в защищённые разделы;
+- нужно ли показывать состояние гостя.
+
+##### 4. Автоматическая подстановка токена в API
+
+Файл:
+
+- `apps/frontend/src/shared/api/client.ts`
+
+В `axios` настроен interceptor:
+
+- перед каждым запросом берётся токен из `SessionManager`;
+- если токен есть, он автоматически подставляется в `Authorization`.
+
+Поэтому обычный авторизованный пользователь не передаёт токен вручную в каждом компоненте.
+
+##### 5. Защита маршрутов
+
+Файлы:
+
+- `apps/frontend/src/app/router/loaders/authLoader.ts`
+- `apps/frontend/src/app/router/loaders/publicOnlyLoader.ts`
+
+Они работают так:
+
+- `authLoader` пускает только тех, у кого есть токен и проходит `getUser()`;
+- если токена нет или он невалиден -> `redirect('/login')`;
+- `publicOnlyLoader` наоборот не пускает уже авторизованного пользователя на страницы логина и регистрации.
+
+То есть обычная авторизация на уровне маршрутов строится вокруг `JWT`.
+
+##### 6. Как запускается режим гостя
+
+Гостевой сценарий на frontend используется не в одном месте, а сразу в нескольких:
+
+- `apps/frontend/src/pages/CreateRoomPage/ui/CreateRoomPage.tsx`
+- `apps/frontend/src/features/join-room/ui/JoinRoomForm.tsx`
+- `apps/frontend/src/pages/InvitePage/ui/InvitePage.tsx`
+
+Во всех этих местах есть одна и та же идея:
+
+1. Если `user` уже есть, значит человек авторизован и можно работать как обычно.
+2. Если `user` нет, frontend пытается найти локальную room-сессию в `localStorage`.
+3. Если в ней уже есть `roomAccessToken`, он используется повторно.
+4. Если его нет, вызывается `loginAsGuest(...)`.
+5. Backend возвращает токен гостя и профиль гостя.
+6. После этого frontend создаёт/открывает/подключает пользователя к комнате.
+
+То есть гость создаётся **лениво**, только когда он реально хочет войти в комнату или создать её.
+
+##### 7. Чем guest-сессия отличается от обычной на frontend
+
+Обычная сессия хранит:
+
+- основной `access_token` в `SessionManager` под ключом `access_token`.
+
+Гостевой сценарий дополнительно хранит локальную игровую сессию.
+
+Файлы:
+
+- `apps/frontend/src/shared/lib/poker.ts`
+- `apps/frontend/src/shared/lib/session/persistRoomSession.ts`
+
+Ключ:
+
+- `SESSION_STORAGE_KEY = 'poker-planning:session'`
+
+Там лежат:
+
+- `roomId`
+- `roomName`
+- `userName`
+- `ownerId`
+- `ownerName`
+- `deckType`
+- `roomAccessToken`
+- `selfParticipantId`
+
+Это нужно для того, чтобы гость:
+
+- мог перезагрузить страницу;
+- мог повторно зайти в комнату;
+- не терял свой room-token и имя внутри комнаты.
+
+##### 8. Как работает RoomPage для гостя и для авторизованного
+
+Файл:
+
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Здесь важная логика такая:
+
+- если есть `user`, значит используется обычная авторизованная сессия;
+- если `user` нет, берётся `roomAccessToken` из локальной room-сессии;
+- запрос комнаты выполняется, если есть либо `user`, либо `roomAccessToken`;
+- для `WebSocket` тоже используется токен:
+  - для обычного пользователя -> основной токен из `SessionManager`;
+  - для гостя -> `roomAccessToken`.
+
+Если нет ни `user`, ни `roomAccessToken`, страница делает:
+
+- `Navigate to="/login"`
+
+То есть даже гостю нужен валидный токен. Просто его токен был создан через `/auth/guest`.
+
+##### 9. WebSocket тоже использует токен
+
+Файл:
+
+- `apps/frontend/src/pages/RoomPage/lib/useRoomWebSocket.ts`
+
+При подключении формируется URL вида:
+
+- `/api/v1/ws/rooms/{roomId}?token=...`
+
+Это означает, что realtime-канал комнаты также защищён токеном, а не открыт анонимно.
+
+#### Где это находится на backend
+
+Основные файлы:
+
+- `apps/backend/app/api/routes/auth.py`
+- `apps/backend/app/services/auth_service.py`
+- `apps/backend/app/schemas/auth.py`
+- `apps/backend/app/core/security.py`
+- `apps/backend/app/core/dependencies.py`
+- `apps/backend/app/api/routes/rooms.py`
+- `apps/backend/app/services/room_service.py`
+- `apps/backend/app/api/routes/ws.py`
+
+#### Как это работает на backend
+
+##### 1. Точки входа аутентификации
+
+Файл:
+
+- `apps/backend/app/api/routes/auth.py`
+
+Там есть 4 endpoint:
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/guest`
+- `GET /auth/me`
+
+Это и есть весь основной вход в систему.
+
+##### 2. Логика обычного пользователя
+
+Файл:
+
+- `apps/backend/app/services/auth_service.py`
+
+Метод `register()`:
+
+- проверяет, нет ли уже такого `email`;
+- создаёт пользователя;
+- хеширует пароль через `hash_password(...)`;
+- сохраняет пользователя в БД;
+- создаёт `JWT-токен`;
+- возвращает `AuthResponse`.
+
+Метод `login()`:
+
+- ищет пользователя по `email`;
+- сверяет пароль через `verify_password(...)`;
+- если всё хорошо, выдаёт `JWT-токен`.
+
+##### 3. Логика гостя
+
+Тот же файл:
+
+- `apps/backend/app/services/auth_service.py`
+
+Метод `guest_login()` делает следующее:
+
+1. Берёт имя из `payload.name` или использует `"Гость"`.
+2. Генерирует случайный суффикс.
+3. Создаёт искусственный email вида `guest-xxxx@guest.example.com`.
+4. Генерирует случайный пароль.
+5. Создаёт полноценную запись `User` в БД.
+6. Выдаёт такой же `JWT access_token`, как и обычному пользователю.
+
+Это очень важный момент:
+
+**Гость у вас не является "анонимным объектом в памяти". Он реально записывается в таблицу `users`.**
+
+##### 4. Как backend понимает, кто делает запрос
+
+Файлы:
+
+- `apps/backend/app/core/security.py`
+- `apps/backend/app/core/dependencies.py`
+
+`create_access_token()`:
+
+- создаёт JWT;
+- кладёт в `sub` идентификатор пользователя;
+- добавляет время создания и срок жизни токена.
+
+`get_current_user()`:
+
+1. Берёт `Authorization: Bearer ...`.
+2. Декодирует JWT через `decode_access_token()`.
+3. Достаёт `sub`.
+4. Находит пользователя в БД.
+5. Возвращает объект `User`.
+
+Если токена нет или он невалиден:
+
+- backend возвращает `401`.
+
+Здесь backend **не различает**, гость это или зарегистрированный пользователь. Если токен валиден и пользователь найден, запрос считается авторизованным.
+
+##### 5. Доступ к комнатам
+
+Файлы:
+
+- `apps/backend/app/api/routes/rooms.py`
+- `apps/backend/app/services/room_service.py`
+
+Почти все операции комнат используют:
+
+- `current_user: User = Depends(get_current_user)`
+
+Это значит, что room-api требует авторизацию и работает уже от имени конкретного пользователя.
+
+Когда пользователь входит в комнату:
+
+- `join_by_invitation(...)`
+- `join_by_code(...)`
+
+backend:
+
+1. находит комнату;
+2. проверяет приглашение или код;
+3. ищет, есть ли уже `RoomParticipant` для этого `user.id`;
+4. если нет, создаёт участника;
+5. возвращает snapshot комнаты.
+
+То есть доступ внутри комнаты строится уже на связке:
+
+- `User`
+- `RoomParticipant`
+
+А не просто на факте наличия токена.
+
+##### 6. WebSocket на backend
+
+Файл:
+
+- `apps/backend/app/api/routes/ws.py`
+
+WebSocket:
+
+1. берёт токен из query-параметра `token`;
+2. декодирует его;
+3. получает `user_id`;
+4. через `RoomService.touch_presence(...)` проверяет, что такой пользователь является участником комнаты;
+5. только после этого подключает его к realtime-каналу.
+
+Если токен отсутствует или неправильный:
+
+- соединение закрывается с ошибкой `4401`.
+
+Если пользователь не является участником комнаты:
+
+- соединение закрывается с ошибкой `4403`.
+
+#### В чём практическая разница между гостем и обычным пользователем в вашем проекте
+
+На практике разница такая:
+
+- **обычный пользователь** входит через email/пароль и имеет постоянную аккаунтную сессию;
+- **гость** создаётся автоматически по запросу frontend и используется в основном для быстрого входа в комнату без регистрации.
+
+Но после получения токена они очень похожи:
+
+- оба представлены как `User` в БД;
+- оба получают `JWT`;
+- оба проходят через `get_current_user()`;
+- оба могут быть `RoomParticipant`;
+- оба могут работать через HTTP и WebSocket.
+
+#### Короткий сценарий целиком
+
+##### Если это авторизованный пользователь
+
+1. Пользователь логинится через `/auth/login`.
+2. Frontend сохраняет токен в `SessionManager`.
+3. `axios` автоматически подставляет токен в запросы.
+4. `SessionProvider` подтверждает пользователя через `/auth/me`.
+5. Backend через `get_current_user()` понимает, кто это.
+6. Пользователь входит в комнату и становится `RoomParticipant`.
+
+##### Если это гость
+
+1. Пользователь нажимает войти в комнату / открыть invite / создать комнату без обычного логина.
+2. Frontend вызывает `/auth/guest`.
+3. Backend создаёт `User`-гостя и отдаёт токен.
+4. Frontend сохраняет room-сессию в `localStorage`.
+5. Дальше этот токен используется для входа в комнату, загрузки snapshot и подключения к WebSocket.
+6. Backend воспринимает его как обычного авторизованного пользователя с guest-профилем.
+
+#### Итог
+
+Если совсем коротко:
+
+- **на frontend** различие между гостем и обычным пользователем проявляется в способе получения и хранения токена;
+- **на backend** различие почти исчезает, потому что оба превращаются в `User` + `JWT`;
+- механизм доступа к комнате строится не на флаге "гость/не гость", а на:
+  - валидном токене;
+  - существующем пользователе;
+  - участии этого пользователя в комнате.
+
+---
+
+### 30. Какие фундаметальные функции используются в проекте для достижения цели проекта?
+
+Если смотреть не на библиотеки, а именно на **смысл проекта**, то ваш проект решает задачу командной оценки задач в формате Planning Poker. Для этого в нём есть несколько **фундаментальных функций**, без которых продукт просто не сможет выполнять свою цель.
+
+#### Главная цель проекта
+
+Цель проекта:
+
+- собрать команду в одной комнате;
+- дать ей общий список задач;
+- запустить процесс голосования;
+- собрать оценки всех участников;
+- раскрыть результат;
+- сохранить итог по задаче.
+
+Именно под это и построены основные механизмы.
+
+#### 1. Аутентификация и идентификация пользователя
+
+Без этого проект не понимает:
+
+- кто создал комнату;
+- кто голосует;
+- кто владелец;
+- кого подключать к WebSocket;
+- кому разрешать действия.
+
+Что для этого используется:
+
+- регистрация;
+- логин;
+- гостевой вход;
+- выдача `JWT-токена`;
+- получение текущего пользователя по токену.
+
+Где это реализовано:
+
+- `apps/backend/app/api/routes/auth.py`
+- `apps/backend/app/services/auth_service.py`
+- `apps/backend/app/core/dependencies.py`
+- `apps/frontend/src/entities/user/api/authApi.ts`
+- `apps/frontend/src/app/providers/SessionProvider.tsx`
+- `apps/frontend/src/shared/lib/session/SessionManager.ts`
+
+Смысл этой функции:
+
+- каждый участник системы должен быть распознан как конкретный пользователь, даже если это гость.
+
+#### 2. Создание и управление комнатой
+
+Planning Poker невозможен без самой комнаты, потому что комната является общей рабочей зоной команды.
+
+Эта функция отвечает за:
+
+- создание комнаты;
+- хранение её имени, кода и статуса;
+- определение владельца;
+- выдачу ссылки-приглашения;
+- удаление комнаты;
+- загрузку комнаты для участника.
+
+Где это реализовано:
+
+- `apps/backend/app/api/routes/rooms.py`
+- `apps/backend/app/services/room_service.py`
+- `apps/frontend/src/entities/room/api/roomApi.ts`
+- `apps/frontend/src/pages/CreateRoomPage/ui/CreateRoomPage.tsx`
+
+Смысл этой функции:
+
+- создать пространство, в котором команда будет совместно оценивать задачи.
+
+#### 3. Подключение участников к комнате
+
+Одной комнаты недостаточно. Нужно ещё уметь заводить в неё людей.
+
+Эта функция отвечает за:
+
+- вход по коду комнаты;
+- вход по invite-ссылке;
+- создание участника `RoomParticipant`;
+- определение роли участника: владелец или обычный участник.
+
+Где это реализовано:
+
+- `apps/backend/app/services/room_service.py`
+- `apps/backend/app/api/routes/rooms.py`
+- `apps/frontend/src/features/join-room/ui/JoinRoomForm.tsx`
+- `apps/frontend/src/pages/InvitePage/ui/InvitePage.tsx`
+
+Смысл этой функции:
+
+- превратить отдельного пользователя в участника конкретной командной сессии.
+
+#### 4. Управление задачами
+
+Planning Poker существует ради оценки задач. Значит, проект обязан уметь работать со списком задач.
+
+Эта функция отвечает за:
+
+- создание задачи;
+- редактирование задачи;
+- удаление задачи;
+- выбор активной задачи для оценки;
+- отображение текущей и уже оценённых задач.
+
+Где это реализовано:
+
+- `apps/backend/app/services/room_service.py`
+- `apps/backend/app/api/routes/rooms.py`
+- `apps/frontend/src/features/task-management/lib/roomTaskActions.ts`
+- `apps/frontend/src/features/task-management/ui/TaskModal.tsx`
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Смысл этой функции:
+
+- дать команде объект, который она реально будет обсуждать и оценивать.
+
+#### 5. Управление раундом голосования
+
+Оценка задачи в Planning Poker происходит не хаотично, а через отдельный раунд.
+
+Эта функция отвечает за:
+
+- старт раунда;
+- привязку раунда к задаче;
+- проверку, что одновременно нет двух активных раундов;
+- перевод раунда между состояниями `voting`, `revealed`, `finalized`, `cancelled`.
+
+Где это реализовано:
+
+- `apps/backend/app/api/routes/voting.py`
+- `apps/backend/app/services/voting_service.py`
+
+Смысл этой функции:
+
+- организовать управляемый процесс оценки, а не просто разрозненные голосы.
+
+#### 6. Голосование участников
+
+Это центральная функция всего проекта. Именно она и даёт продукту смысл.
+
+Эта функция отвечает за:
+
+- выбор карты участником;
+- проверку, что карта существует в выбранной колоде;
+- сохранение голоса;
+- обновление голоса, если участник проголосовал повторно;
+- скрытие конкретных значений до раскрытия.
+
+Где это реализовано:
+
+- `apps/backend/app/services/voting_service.py`
+- `apps/backend/app/api/routes/voting.py`
+- `apps/frontend/src/features/voting/lib/roomVotingActions.ts`
+- `apps/frontend/src/widgets/VotingCards/ui/VotingCards.tsx`
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Смысл этой функции:
+
+- собрать независимые оценки участников по одной задаче.
+
+#### 7. Раскрытие карт и фиксация результата
+
+Planning Poker важен не только сбором голосов, но и тем, что результат раскрывается и фиксируется.
+
+Эта функция отвечает за:
+
+- раскрытие раунда;
+- показ распределения голосов;
+- вычисление среднего;
+- определение консенсуса;
+- предложение итоговой оценки;
+- сохранение итогового результата;
+- запись оценки в саму задачу.
+
+Где это реализовано:
+
+- `apps/backend/app/services/voting_service.py`
+- `apps/backend/app/services/room_state_service.py`
+- `apps/backend/app/api/routes/voting.py`
+- `apps/frontend/src/widgets/RoomResults/ui/RoomResults.tsx`
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Смысл этой функции:
+
+- превратить набор голосов в конкретное итоговое решение команды.
+
+#### 8. Построение актуального состояния комнаты
+
+Frontend должен в любой момент понимать:
+
+- кто сейчас в комнате;
+- кто проголосовал;
+- какая задача активна;
+- какой раунд идёт;
+- какие есть результаты в истории.
+
+Для этого нужен единый снимок состояния комнаты.
+
+Где это реализовано:
+
+- `apps/backend/app/services/room_state_service.py`
+
+Эта функция собирает в один `snapshot`:
+
+- метаданные комнаты;
+- участников;
+- задачи;
+- активный раунд;
+- историю завершённых раундов.
+
+Смысл этой функции:
+
+- дать frontend один целостный источник правды для отображения комнаты.
+
+#### 9. Realtime-обновления через WebSocket
+
+Planning Poker теряет смысл, если участники не видят изменения сразу.
+
+Эта функция отвечает за:
+
+- подключение к комнате в реальном времени;
+- обновление присутствия участников;
+- рассылку событий после входа, голоса, раскрытия, финализации;
+- мгновенную синхронизацию интерфейса у всех участников.
+
+Где это реализовано:
+
+- `apps/backend/app/api/routes/ws.py`
+- `apps/backend/app/websocket/manager.py`
+- `apps/frontend/src/pages/RoomPage/lib/useRoomWebSocket.ts`
+
+Смысл этой функции:
+
+- сделать командную оценку живой и синхронной, а не пошаговой через ручное обновление страницы.
+
+#### 10. Сохранение сессии и возврат пользователя
+
+Проекту важно не только провести одну оценку, но и дать пользователю вернуться в комнату после перезагрузки страницы.
+
+Эта функция отвечает за:
+
+- хранение токена;
+- хранение локальной room-сессии;
+- восстановление имени участника;
+- повторное подключение к комнате;
+- продолжение работы без потери контекста.
+
+Где это реализовано:
+
+- `apps/frontend/src/shared/lib/session/SessionManager.ts`
+- `apps/frontend/src/shared/lib/session/persistRoomSession.ts`
+- `apps/frontend/src/shared/lib/poker.ts`
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Смысл этой функции:
+
+- сделать использование проекта непрерывным и удобным, особенно для гостя.
+
+#### Что из этого самое фундаментальное
+
+Если сжать всё до самой сути, то проект держится на 6 базовых функциях:
+
+1. Идентификация пользователя.
+2. Создание и хранение комнаты.
+3. Подключение участников к комнате.
+4. Управление задачами.
+5. Голосование и управление раундом.
+6. Realtime-синхронизация результатов между всеми участниками.
+
+Если убрать хотя бы одну из них:
+
+- либо команда не сможет собраться;
+- либо не сможет голосовать;
+- либо не сможет увидеть общий результат;
+- либо не сможет сохранить итог оценки.
+
+#### Итог
+
+Если совсем коротко:
+
+- фундамент проекта не в `React`, `FastAPI` или `PostgreSQL` сами по себе;
+- фундамент проекта в бизнес-функциях:
+  - пользователь,
+  - комната,
+  - участники,
+  - задачи,
+  - раунд голосования,
+  - результаты,
+  - realtime-синхронизация.
+
+Именно эти функции вместе и позволяют проекту достигать своей цели: **проводить командную оценку задач в формате Planning Poker в реальном времени**.
+
+---
+
+### 31. Зачем в проекте нужен TanStack Query, если есть Axios? Что такое staleTime и cacheTime? Как обновляются данные после того, как пользователь проголосовал (инвалидация мутаций)?
+
+Коротко:
+
+- `Axios` делает HTTP-запросы.
+- `TanStack Query` хранит ответ, кэширует его, даёт `isLoading/isError` и обновляет UI после изменений.
+
+То есть:
+
+- `Axios` = транспорт.
+- `TanStack Query` = управление серверным состоянием.
+
+#### Что где используется
+
+- `Axios`: `apps/frontend/src/shared/api/client.ts`, `apps/frontend/src/entities/room/api/roomApi.ts`
+- `TanStack Query`: `apps/frontend/src/app/providers/QueryProvider.tsx`, `apps/frontend/src/shared/config/query.ts`
+
+#### Что такое `staleTime`
+
+`staleTime` — сколько времени данные считаются свежими.
+
+Пока данные свежие:
+
+- Query не спешит делать повторный запрос;
+- может сразу отдать кэш.
+
+В проекте:
+
+- общий `staleTime` = `5 минут` в `apps/frontend/src/shared/config/query.ts`;
+- для истории комнаты `staleTime` = `30 секунд` в `apps/frontend/src/entities/room/ui/RoomCard/ui/RoomCard.tsx`.
+
+#### Что такое `cacheTime`
+
+`cacheTime` — сколько неиспользуемые данные живут в памяти после того, как компонент отписался от query.
+
+Разница:
+
+- `staleTime` = свежесть данных;
+- `cacheTime` = время жизни кэша.
+
+В `TanStack Query v5` вместо `cacheTime` часто используют название `gcTime`.
+
+В вашем проекте `cacheTime` отдельно не настроен, используется значение по умолчанию.
+
+#### Как обновляются данные после голосования
+
+Основной flow:
+
+1. В `RoomPage` вызывается `voteMutation`.
+2. `mutationFn` внутри вызывает `roomApi.submitVote(...)`.
+3. `roomApi.submitVote(...)` отправляет запрос через `Axios`.
+4. После успеха срабатывает `onSuccess: refreshRoomData`.
+5. `refreshRoomData()` делает:
+   - `invalidateQueries` для текущей комнаты;
+   - `invalidateQueries` для списка комнат;
+   - `invalidateQueries` для истории комнаты.
+6. Query помечает эти данные устаревшими и перезапрашивает их.
+7. UI получает новое состояние.
+
+Файлы:
+
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+- `apps/frontend/src/entities/room/api/roomApi.ts`
+
+#### Что делает `invalidateQueries`
+
+`invalidateQueries(...)` не удаляет данные сразу.
+
+Он:
+
+- помечает кэш как устаревший;
+- запускает повторную загрузку для активных query.
+
+#### Роль WebSocket
+
+Кроме `onSuccess`, у вас есть ещё realtime-обновление через WebSocket.
+
+Файл:
+
+- `apps/frontend/src/pages/RoomPage/lib/useRoomWebSocket.ts`
+
+Когда приходит событие `vote.submitted`, `round.started`, `round.revealed` и другие, там тоже вызывается `invalidateQueries(...)`.
+
+Это нужно, чтобы обновлялся не только тот, кто нажал кнопку, но и остальные участники комнаты.
+
+#### Итог
+
+- `Axios` без `TanStack Query` только отправляет запросы.
+- `TanStack Query` решает проблему кэша, загрузок, ошибок и обновления UI.
+- `staleTime` = сколько данные свежие.
+- `cacheTime` / `gcTime` = сколько кэш живёт без подписчиков.
+- После голосования данные у вас обновляются через `onSuccess -> invalidateQueries(...)`, а для остальных участников ещё и через WebSocket.
+
+---
+
+### 32. Где инициализируется соединение? Как обрабатывается закрытие сокета? Как WebSocket взаимодействует с React-стейтов?
+
+#### Где инициализируется соединение
+
+Соединение создаётся на frontend в хуке:
+
+- `apps/frontend/src/pages/RoomPage/lib/useRoomWebSocket.ts`
+
+И используется он в:
+
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+В `RoomPage` вызывается:
+
+- `useRoomWebSocket({ roomId, token, enabled })`
+
+`enabled` становится `true`, когда:
+
+- есть пользователь или `roomAccessToken`;
+- уже известен реальный `roomId`.
+
+Дальше внутри `useRoomWebSocket` функция `connect()` делает:
+
+- сбор `ws://` или `wss://` URL;
+- добавляет `token` в query string;
+- создаёт `new WebSocket(url)`.
+
+Реальный URL строится так:
+
+- `/api/v1/ws/rooms/{roomId}?token=...`
+
+На backend точка входа находится здесь:
+
+- `apps/backend/app/api/routes/ws.py`
+
+Там endpoint:
+
+- `@router.websocket("/ws/rooms/{room_id}")`
+
+#### Что происходит при подключении на backend
+
+В `apps/backend/app/api/routes/ws.py` backend:
+
+1. Берёт `token` из query params.
+2. Декодирует JWT.
+3. Получает `user_id`.
+4. Через `RoomService.touch_presence(...)` проверяет, что пользователь является участником комнаты.
+5. Вызывает `room_connection_manager.connect(...)`.
+6. Сразу отправляет текущий snapshot комнаты через `send_snapshot(...)`.
+7. Потом рассылает всем `presence.changed`.
+
+Менеджер соединений хранится здесь:
+
+- `apps/backend/app/websocket/manager.py`
+
+Он держит структуру:
+
+- `room_id -> participant_id -> set[WebSocket]`
+
+То есть у одного участника может быть несколько открытых сокетов, например в нескольких вкладках.
+
+#### Как обрабатывается закрытие сокета на frontend
+
+Закрытие обрабатывается в `useRoomWebSocket.ts` двумя способами.
+
+##### 1. Автоматическое закрытие при размонтировании
+
+В хуке есть `useEffect`, который:
+
+- при `enabled = true` вызывает `connect()`;
+- в cleanup вызывает `disconnect()`.
+
+`disconnect()` делает:
+
+- `shouldReconnectRef.current = false`
+- `clearTimeout(reconnectTimeoutRef.current)`
+- `wsRef.current.close()`
+- `wsRef.current = null`
+
+Это означает:
+
+- если пользователь ушёл со страницы комнаты, сокет закрывается штатно;
+- автоматическое переподключение в этот момент запрещается.
+
+##### 2. Обрыв соединения
+
+В `ws.onclose` есть логика:
+
+- если `shouldReconnectRef.current === false`, просто считаем соединение закрытым;
+- иначе через `setTimeout(connect, 3000)` запускается переподключение через 3 секунды.
+
+То есть в проекте есть простое авто-переподключение.
+
+#### Как обрабатывается закрытие сокета на backend
+
+В `apps/backend/app/api/routes/ws.py` есть блок:
+
+- `except WebSocketDisconnect`
+
+Там backend:
+
+1. Вызывает `room_connection_manager.disconnect(room_id, participant.id, websocket)`.
+2. Удаляет конкретный сокет из хранилища активных соединений.
+3. Если у участника больше нет сокетов, удаляет участника из списка онлайн.
+4. Затем рассылает `presence.changed`.
+
+Это нужно, чтобы остальные участники увидели, что кто-то вышел или стал offline.
+
+#### Как WebSocket взаимодействует с React state
+
+Здесь важный момент:
+
+**WebSocket почти не пишет данные напрямую в `useState`.**
+
+Основное взаимодействие идёт через:
+
+- `TanStack Query`
+- кэш query
+- последующий перезапрос snapshot комнаты
+
+#### Что обновляет WebSocket реально
+
+В `useRoomWebSocket.ts` обработчик `ws.onmessage`:
+
+1. Парсит входящее сообщение.
+2. Смотрит на `message.type`.
+3. Если это одно из событий:
+   - `room.snapshot`
+   - `presence.changed`
+   - `round.started`
+   - `vote.submitted`
+   - `round.revealed`
+   - `round.finalized`
+   - `task.updated`
+4. Вызывает:
+   - `queryClient.invalidateQueries({ queryKey: ['room'] })`
+   - `queryClient.invalidateQueries({ queryKey: ['rooms'] })`
+   - `queryClient.invalidateQueries({ queryKey: ['room-history'] })`
+
+То есть WebSocket не говорит React:
+
+- "вот вручную поменяй `players`"
+- "вот вручную измени `snapshot`"
+
+Он говорит:
+
+- "данные на сервере изменились, заново загрузи актуальное состояние"
+
+#### Где тогда настоящий React state
+
+В `RoomPage.tsx` есть обычный локальный React state:
+
+- `pendingCard`
+- `resolvedRoomRef`
+- `taskModalMode`
+- `taskModalTask`
+
+Но сами данные комнаты:
+
+- участники;
+- задачи;
+- активный раунд;
+- история;
+
+берутся не из `useState`, а из:
+
+- `const roomQuery = useQuery(...)`
+- `const snapshot = roomQuery.data`
+
+То есть связка такая:
+
+1. WebSocket получает событие.
+2. `invalidateQueries(...)` помечает кэш устаревшим.
+3. `useQuery` перезапрашивает snapshot комнаты.
+4. `roomQuery.data` обновляется.
+5. Компонент `RoomPage` ререндерится.
+6. Из нового `snapshot` заново считаются:
+   - `players`
+   - `tasks`
+   - `activeTask`
+   - `isOwner`
+   - `roomOwnerName`
+
+То есть WebSocket влияет на React state **косвенно через query-кэш**, а не через прямой `setState`.
+
+#### Дополнительная деталь: ping
+
+В `useRoomWebSocket.ts` есть ещё `useEffect`, который раз в `30 секунд` отправляет:
+
+- `{ type: 'presence.ping' }`
+
+На backend это обрабатывается в `apps/backend/app/api/routes/ws.py`:
+
+- `if message_type == "presence.ping": RoomService(db).touch_presence(...)`
+
+Это нужно, чтобы backend обновлял присутствие участника в комнате.
+
+#### Итог
+
+В вашем проекте:
+
+- соединение инициализируется в `useRoomWebSocket()` и вызывается из `RoomPage`;
+- закрытие на frontend обрабатывается через `disconnect()` и `ws.onclose`;
+- закрытие на backend обрабатывается через `WebSocketDisconnect` и `room_connection_manager.disconnect(...)`;
+- WebSocket не хранит состояние комнаты в отдельном React `useState`;
+- вместо этого он инвалидирует `TanStack Query`, после чего React получает новый `snapshot` и перерисовывает интерфейс.
+
+---
+
+### 33. Где лежит логика создания задачи (create task)?
+
+Логика `create task` у вас распределена по слоям, но **главная бизнес-логика** лежит на backend здесь:
+
+- `apps/backend/app/services/room_service.py`
+
+Конкретно в методе:
+
+- `RoomService.create_task(...)`
+
+Именно там:
+
+- проверяется, что задачу создаёт владелец комнаты через `require_owner(...)`;
+- вычисляется `position`, если она не передана;
+- создаётся задача через `self.rooms.create_task(...)`;
+- выставляется `status=TaskStatus.BACKLOG`;
+- обновляется `updated_at` комнаты через `touch_room(...)`;
+- выполняется `commit()`.
+
+#### Где это вызывается на backend
+
+HTTP endpoint находится здесь:
+
+- `apps/backend/app/api/routes/rooms.py`
+
+Маршрут:
+
+- `POST /rooms/{room_id}/tasks`
+
+Он делает:
+
+1. Принимает `TaskCreateRequest`.
+2. Получает `current_user`.
+3. Вызывает `RoomService(db).create_task(room_id, payload, current_user)`.
+4. После создания рассылает `task.updated` по WebSocket.
+
+То есть:
+
+- `routes/rooms.py` = входная точка API;
+- `services/room_service.py` = основная логика создания.
+
+#### Где это вызывается на frontend
+
+На frontend цепочка такая:
+
+##### 1. UI-модалка
+
+Файл:
+
+- `apps/frontend/src/features/task-management/ui/TaskModal.tsx`
+
+В режиме `create` она собирает:
+
+- `title`
+- `description`
+
+и вызывает:
+
+- `onCreate(...)`
+
+##### 2. Обработчик действия
+
+Файл:
+
+- `apps/frontend/src/features/task-management/lib/roomTaskActions.ts`
+
+Функция:
+
+- `handleAddTaskAction(...)`
+
+Она делает базовую frontend-проверку:
+
+- что `title` не пустой;
+- что длины не превышены;
+- что пользователь владелец;
+- что есть `roomId`;
+- что сейчас нет другой активной операции.
+
+После этого вызывает:
+
+- `createTask({ title, description })`
+
+##### 3. Мутация страницы комнаты
+
+Файл:
+
+- `apps/frontend/src/pages/RoomPage/ui/RoomPage.tsx`
+
+Там есть:
+
+- `createTaskMutation = useMutation(...)`
+
+Внутри:
+
+- `mutationFn: (payload) => roomApi.createTask(roomId, payload, roomAccessToken)`
+- `onSuccess: refreshRoomData`
+
+То есть после успешного создания:
+
+- инвалидируется кэш комнаты;
+- инвалидируется список комнат;
+- инвалидируется история комнаты.
+
+##### 4. API frontend
+
+Файл:
+
+- `apps/frontend/src/entities/room/api/roomApi.ts`
+
+Там `createTask(...)` делает:
+
+- `POST /rooms/{roomId}/tasks`
+
+через `Axios`.
+
+#### Полный путь create task
+
+Если совсем по шагам:
+
+1. Пользователь нажимает "Создать задачу".
+2. Открывается `TaskModal`.
+3. `TaskModal` вызывает `onCreate(...)`.
+4. `handleAddTaskAction(...)` валидирует данные.
+5. `createTaskMutation` отправляет запрос.
+6. `roomApi.createTask(...)` делает `POST /rooms/{roomId}/tasks`.
+7. Backend роут вызывает `RoomService.create_task(...)`.
+8. Сервис создаёт задачу в БД.
+9. Backend отправляет `task.updated` по WebSocket.
+10. Frontend обновляет данные комнаты через `refreshRoomData()` и `invalidateQueries(...)`.
+
+#### Итог
+
+Если коротко:
+
+- **главная логика создания задачи лежит в** `apps/backend/app/services/room_service.py`;
+- **endpoint лежит в** `apps/backend/app/api/routes/rooms.py`;
+- **frontend-запуск идёт через** `TaskModal -> handleAddTaskAction -> createTaskMutation -> roomApi.createTask`.
+
+---
+
+### 34. В чём разница между папкой feauters и shared?
+
+Коротко:
+
+- `features` — это **пользовательские действия и бизнес-сценарии**.
+- `shared` — это **общие переиспользуемые инструменты и UI**, которые не привязаны к одному конкретному сценарию.
+
+#### Что лежит в `features`
+
+У вас в `features` лежат вещи, которые отвечают на вопрос:
+
+- "что пользователь делает в системе?"
+
+Примеры из проекта:
+
+- `apps/frontend/src/features/auth`
+- `apps/frontend/src/features/join-room`
+- `apps/frontend/src/features/task-management`
+- `apps/frontend/src/features/voting`
+
+Это уже не просто кнопки или инпуты, а законченные действия:
+
+- вход в систему;
+- присоединение к комнате;
+- создание и редактирование задачи;
+- голосование;
+- раскрытие результатов.
+
+Например:
+
+- `features/join-room/ui/JoinRoomForm.tsx` — сценарий входа в комнату по коду;
+- `features/task-management/lib/roomTaskActions.ts` — логика действий с задачами;
+- `features/voting/lib/roomVotingActions.ts` — логика голосования.
+
+То есть `features` = слой поведения.
+
+#### Что лежит в `shared`
+
+`shared` отвечает на вопрос:
+
+- "какие общие кирпичики можно использовать в разных частях приложения?"
+
+Примеры из проекта:
+
+- `apps/frontend/src/shared/ui`
+- `apps/frontend/src/shared/api`
+- `apps/frontend/src/shared/lib`
+- `apps/frontend/src/shared/config`
+
+Там лежат:
+
+- базовые UI-компоненты: `Button`, `Input`, `Modal`, `Card`, `Spinner`;
+- общий `axios`-client;
+- утилиты;
+- общие хуки;
+- session helpers;
+- query config;
+- общие константы и типы для клиентской логики.
+
+Например:
+
+- `shared/ui/Button/Button.tsx` — просто кнопка;
+- `shared/api/client.ts` — общий HTTP-клиент;
+- `shared/lib/session/SessionManager.ts` — работа с токеном;
+- `shared/config/query.ts` — настройка `TanStack Query`.
+
+То есть `shared` = слой инфраструктуры и переиспользуемых деталей.
+
+#### Главная разница на простом примере
+
+Например, пользователь создаёт задачу.
+
+Здесь:
+
+- `TaskModal` и `roomTaskActions` из `features/task-management` — это сам сценарий создания задачи;
+- `Button`, `Modal`, `Input` из `shared/ui` — это инструменты, из которых этот сценарий собран.
+
+То есть:
+
+- `features` говорят: **что делает пользователь**;
+- `shared` дают: **чем это реализовать технически**.
+
+#### Как понять, куда класть новый код
+
+Кладите в `shared`, если:
+
+- код нужен в разных местах;
+- он не зависит от конкретной бизнес-фичи;
+- это базовый UI, helper, config, hook, utility.
+
+Кладите в `features`, если:
+
+- код описывает конкретное действие пользователя;
+- он связан с бизнес-логикой экрана или сценария;
+- это кусок поведения, а не просто общий инструмент.
+
+#### Итог
+
+Если совсем коротко:
+
+- `shared` — это общая база проекта;
+- `features` — это пользовательские возможности, собранные из этой базы.
+
+В вашем проекте это хорошо видно так:
+
+- `shared` = `Button`, `Input`, `Modal`, `api client`, `SessionManager`, `query config`;
+- `features` = `auth`, `join-room`, `task-management`, `voting`.
