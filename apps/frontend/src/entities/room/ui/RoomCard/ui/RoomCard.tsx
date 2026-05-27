@@ -18,6 +18,7 @@ export function RoomCard({ room }: RoomCardProps) {
   const { user } = useSession(); // Получение информации о текущем пользователе из сессии
   const [isResultsOpen, setIsResultsOpen] = useState(false); // Состояние для управления открытием модального окна с результатами голосований
 
+  // Мутация для удаления комнаты, которая вызывается при нажатии на кнопку "Удалить комнату"
   const deleteRoomMutation = useMutation({
     mutationFn: () => roomApi.deleteRoom(room.id), // Функция для удаления комнаты по её ID
     onSuccess: () => {
