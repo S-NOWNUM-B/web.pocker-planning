@@ -43,12 +43,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const syncSession = async () => {
     const token = SessionManager.getToken(); // Получение токена сессии из SessionManager, который может извлекать его из localStorage или другого хранилища
 
+    // Если токена нет, значит пользователь не аутентифицирован, устанавливаем состояние и завершаем загрузку
     if (!token) {
       setUser(null);
       setIsLoading(false);
       return;
     }
 
+    // Если токен есть, пытаемся получить данные текущего пользователя с сервера, чтобы проверить валидность токена и обновить состояние сессии
     try {
       const currentUser = await getUserRequest();
       setUser(currentUser);
@@ -77,7 +79,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      void syncSession();
+      void syncSession(); // Если данных пользователя нет, синхронизируем с сервером, чтобы проверить валидность токена и обновить состояние сессии (например, при удалении токена в другой вкладке)
     };
 
     window.addEventListener(SessionManager.SESSION_CHANGE_EVENT, handleSessionChange); // Подписка на событие изменения сессии, чтобы реагировать на изменения в других вкладках или при изменении данных пользователя
@@ -87,27 +89,27 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Вход в аккаунт — сохраняем токен и профиль
+  // Вход в систему — сохраняем токен и профиль
   const handleLogin = async (credentials: LoginCredentials) => {
     try {
-      const authData = await loginRequest(credentials);
-      SessionManager.saveToken(authData.access_token, authData.user);
-      setUser(authData.user);
-      setHasRegisteredUsers(true);
+      const authData = await loginRequest(credentials); // Отправляем запрос на вход в систему с предоставленными учетными данными и получаем данные аутентификации, включая токен и профиль пользователя
+      SessionManager.saveToken(authData.access_token, authData.user); // Сохраняем токен и профиль пользователя в SessionManager, который может сохранять их в localStorage или другом хранилище и уведомлять об изменениях сессии
+      setUser(authData.user); // Обновляем состояние сессии, устанавливая данные текущего пользователя, что позволяет другим компонентам приложения реагировать на изменение состояния аутентификации
+      setHasRegisteredUsers(true); // Устанавливаем флаг наличия зарегистрированных пользователей, что может использоваться для отображения определённых элементов интерфейса или управления доступом к функциям приложения
     } catch (error) {
-      throw new Error(parseApiErrorMessage(error));
+      throw new Error(parseApiErrorMessage(error)); // Если при входе произошла ошибка, извлекаем сообщение об ошибке из ответа API и выбрасываем его, чтобы компоненты, вызывающие функцию входа, могли отобразить соответствующее сообщение пользователю
     }
   };
 
   // Регистрация нового пользователя — сохраняем токен и профиль
   const handleRegister = async (credentials: RegisterCredentials) => {
     try {
-      const authData = await registerRequest(credentials);
-      SessionManager.saveToken(authData.access_token, authData.user);
-      setUser(authData.user);
-      setHasRegisteredUsers(true);
+      const authData = await registerRequest(credentials); // Отправляем запрос на регистрацию нового пользователя с предоставленными учетными данными и получаем данные аутентификации, включая токен и профиль пользователя
+      SessionManager.saveToken(authData.access_token, authData.user); // Сохраняем токен и профиль пользователя в SessionManager, который может сохранять их в localStorage или другом хранилище и уведомлять об изменениях сессии
+      setUser(authData.user); // Обновляем состояние сессии, устанавливая данные текущего пользователя, что позволяет другим компонентам приложения реагировать на изменение состояния аутентификации
+      setHasRegisteredUsers(true); // Устанавливаем флаг наличия зарегистрированных пользователей, что может использоваться для отображения определённых элементов интерфейса или управления доступом к функциям приложения
     } catch (error) {
-      throw new Error(parseApiErrorMessage(error));
+      throw new Error(parseApiErrorMessage(error)); // Если при регистрации произошла ошибка, извлекаем сообщение об ошибке из ответа API и выбрасываем его, чтобы компоненты, вызывающие функцию регистрации, могли отобразить соответствующее сообщение пользователю
     }
   };
 
@@ -134,9 +136,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
 // Хук для доступа к сессии из компонентов
 export function useSession(): SessionContextValue {
-  const context = useContext(SessionContext);
+  const context = useContext(SessionContext); // Получаем значение контекста сессии, которое может быть undefined, если компонент не обёрнут в SessionProvider
   if (!context) {
     throw new Error('useSession must be used within SessionProvider');
   }
-  return context;
+  return context; // Возвращаем значение контекста сессии, предоставляя доступ к состоянию сессии и функциям управления сессией для компонентов, которые используют этот хук
 }
