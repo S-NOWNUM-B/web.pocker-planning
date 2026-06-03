@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'; // Импорт хуков useState и useMemo для управления состоянием и оптимизации вычислений в компоненте
 import { Button } from '@/shared/ui'; // Импорт компонента Button из общей библиотеки UI компонентов
-import { EditIcon, TrashIcon } from '@/shared/ui/icons'; // Импорт иконок EditIcon и TrashIcon для отображения кнопок редактирования и удаления задач
+import { EditIcon, TrashIcon, CheckIcon } from '@/shared/ui/icons'; // Импорт иконок EditIcon и TrashIcon для отображения кнопок редактирования и удаления задач
 import { cn } from '@/shared/lib'; // Импорт функции cn для удобного объединения классов CSS
 import type { Task } from '@/shared/lib/poker'; // Импорт типа Task, который описывает структуру данных задачи в приложении
 
@@ -38,7 +38,7 @@ export function TaskSidebar({
   // Вычисление отфильтрованного списка задач на основе выбранного фильтра и активной задачи, с помощью useMemo для оптимизации, чтобы не пересчитывать список при каждом рендере, а только при изменении задач, фильтра или активной задачи
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      if (filter === 'active') return task.id === activeTaskId;
+      if (filter === 'active') return task.id === activeTaskId && task.estimate === null;
       if (filter === 'completed') return task.estimate !== null;
       return true;
     });
@@ -53,9 +53,6 @@ export function TaskSidebar({
     >
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
-            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-          </div>
           <h2 className="text-sm font-bold uppercase tracking-widest text-foreground/80">Задачи</h2>
         </div>
         <span className="text-xs font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full">
@@ -97,9 +94,6 @@ export function TaskSidebar({
                   type="button"
                   onClick={() => {
                     onOpenTaskModal(task);
-                    if (!isRevealed) {
-                      onSelectTask(task.id);
-                    }
                   }}
                   variant="ghost"
                   className={cn(
@@ -127,6 +121,30 @@ export function TaskSidebar({
 
                 {isOwner && (
                   <div className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex items-center gap-1 opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        'group h-7 w-7 p-0 border rounded-md backdrop-blur-sm',
+                        isActive
+                          ? 'bg-primary/15 border-primary/40 text-destructive'
+                          : 'text-destructive hover:text-destructive bg-card/80 border-border/50',
+                      )}
+                      title="Выбрать активной"
+                      disabled={isRevealed}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isRevealed) {
+                          onSelectTask(task.id);
+                        }
+                      }}
+                    >
+                      <CheckIcon
+                        className="h-4 w-4 flex-none text-destructive"
+                        stroke="var(--destructive)"
+                        strokeWidth={1.8}
+                        style={{ width: 16, height: 16 }}
+                      />
+                    </Button>
                     <Button
                       variant="ghost"
                       className="group h-7 w-7 p-0 text-foreground hover:text-primary bg-card/80 backdrop-blur-sm border border-border/50 rounded-md"
